@@ -104,3 +104,24 @@ test('定点倒计时 <24h 显示小时而非天数', () => {
   assert.equal(r2.main, '3 天')
   assert.equal(r2.sub, '02:00:00')
 })
+
+test('日进度跨天重置：前一天末尾接近 100%，新一天 0% 起步', () => {
+  const end = dayProgress(new Date(2026, 7, 16, 23, 59, 59))
+  assert.ok(end.percent > 0.999, `end-of-day percent=${end.percent}`)
+  const start = dayProgress(new Date(2026, 7, 17, 0, 0, 0))
+  assert.equal(start.percent, 0)
+})
+
+test('月进度跨月重置：8 月末接近 100%，9 月 1 日 0 点归零', () => {
+  const end = monthProgress(new Date(2026, 7, 31, 23, 59, 59))
+  assert.ok(end.percent > 0.99, `end-of-month percent=${end.percent}`)
+  const start = monthProgress(new Date(2026, 8, 1, 0, 0, 0))
+  assert.equal(start.percent, 0)
+})
+
+test('年进度跨年重置：12 月 31 日末接近 100%，1 月 1 日 0 点归零', () => {
+  const end = yearProgress(new Date(2026, 11, 31, 23, 59, 59))
+  assert.ok(end.percent > 0.999, `end-of-year percent=${end.percent}`)
+  const start = yearProgress(new Date(2027, 0, 1, 0, 0, 0))
+  assert.equal(start.percent, 0)
+})
