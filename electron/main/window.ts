@@ -42,10 +42,13 @@ function restoreBounds(): { x: number; y: number; width: number; height: number 
   return visible ? saved : null
 }
 
+const isMac = process.platform === 'darwin'
+
 function baseOptions() {
   const cfg = configStore.get()
   return {
-    frame: false,
+    // Windows/Linux 无边框自绘标题栏；macOS 保留红绿灯按钮的内嵌隐藏样式
+    ...(isMac ? { frame: true, titleBarStyle: 'hiddenInset' as const } : { frame: false }),
     alwaysOnTop: cfg.alwaysOnTop,
     opacity: cfg.opacity,
     autoHideMenuBar: true,

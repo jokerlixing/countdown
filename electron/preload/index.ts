@@ -2,6 +2,9 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { AppConfig, Task, TaskType, FinishRecord } from '../../shared/types'
 
 const desktopAPI = {
+  // 平台信息（macOS 标题栏适配等）
+  platform: process.platform as NodeJS.Platform,
+
   // 配置
   getConfig: (): Promise<AppConfig> => ipcRenderer.invoke('config:get'),
   patchConfig: (partial: Partial<AppConfig>): void => ipcRenderer.send('config:patch', partial),

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 defineProps<{ title: string }>()
+const isMac = window.desktopAPI.platform === 'darwin'
 const minimize = (): void => window.desktopAPI.minimize()
 const close = (): void => window.desktopAPI.close()
 </script>
 
 <template>
-  <div class="title-bar">
+  <div class="title-bar" :class="{ mac: isMac }">
     <span class="title">{{ title }}</span>
-    <div class="actions">
+    <div v-if="!isMac" class="actions">
       <button class="tb-btn" title="最小化" @click="minimize">─</button>
       <button class="tb-btn close" title="关闭到托盘" @click="close">✕</button>
     </div>
@@ -23,6 +24,10 @@ const close = (): void => window.desktopAPI.close()
   height: 38px;
   padding: 0 6px 0 16px;
   flex-shrink: 0;
+}
+/* macOS：为红绿灯交通灯按钮留出左侧空间 */
+.title-bar.mac {
+  padding-left: 78px;
 }
 .title {
   font-size: 13px;

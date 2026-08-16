@@ -1,9 +1,9 @@
 # Desktop Countdown · 桌面倒计时
 
-一款简单、美观、稳定的 Windows 桌面倒计时小工具。
+一款简单、美观、稳定的桌面倒计时小工具。
 
-- 版本：v0.7.0
-- 支持系统：Windows 10 / 11 64 位
+- 版本：v0.7.1
+- 支持系统：Windows 10 / 11 64 位；macOS（Apple Silicon / Intel）
 
 ## 项目简介
 
@@ -44,7 +44,20 @@ npm run build      # 构建主进程 / Preload / 渲染进程到 out/
 npm run dist       # 构建并打包 Windows NSIS 安装程序
 ```
 
-产物位于 `release/` 目录：`桌面倒计时-Setup-0.7.0.exe`。安装后无需 Node.js 环境，可独立运行。
+产物位于 `release/` 目录：`桌面倒计时-Setup-0.7.1.exe`。安装后无需 Node.js 环境，可独立运行。
+
+### macOS 打包
+
+在 **macOS 电脑**上克隆本仓库后执行：
+
+```bash
+npm install
+npm run dist:mac
+```
+
+产物：`release/桌面倒计时-macOS-0.7.1-arm64.dmg` 与 `-x64.dmg`（同时输出 zip）。DMG 拖入"应用程序"即可使用。
+
+> 说明：electron-builder 不支持在 Windows 上构建 macOS 包，因此 DMG 必须在 Mac 上生成；本项目未做开发者签名与公证，首次打开若被 Gatekeeper 拦截，请**右键应用 → 打开**，或执行 `xattr -dr com.apple.quarantine /Applications/桌面倒计时.app`。macOS 版已适配：红绿灯窗口控制（隐藏式内嵌标题栏）、⌘+Alt+T 全局快捷键、开机启动等。
 
 ## 目录结构
 
@@ -73,6 +86,12 @@ npm run dist       # 构建并打包 Windows NSIS 安装程序
 ```
 
 ## 功能列表
+
+### v0.7.1 新增
+
+- **macOS 安装包支持**：electron-builder 增加 mac 配置（DMG + ZIP，Apple Silicon 与 Intel 双架构，图标自动由 icon.png 转换），`npm run dist:mac` 一键构建
+- 跨平台适配：macOS 使用 hiddenInset 标题栏（保留红绿灯按钮，自绘按钮自动隐藏）、全局快捷键改为 ⌘/Ctrl+Alt+T、暴露 platform 信息给渲染层
+- 注：DMG 需在 macOS 上构建（electron-builder 限制），Windows 本机已验证配置与代码通过全部测试
 
 ### v0.7.0 新增
 

@@ -4,7 +4,8 @@ import { log } from './logger'
 
 export function registerGlobalShortcut(): void {
   try {
-    globalShortcut.register('Ctrl+Alt+T', () => {
+    // CommandOrControl：Windows 为 Ctrl，macOS 为 ⌘
+    globalShortcut.register('CommandOrControl+Alt+T', () => {
       const win = getMainWindow()
       if (!win) return
       if (win.isVisible() && win.isFocused()) win.hide()

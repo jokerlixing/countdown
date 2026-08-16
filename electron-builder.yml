@@ -23,6 +23,17 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: 桌面倒计时
+mac:
+  icon: resources/icons/icon.png
+  category: public.app-category.productivity
+  artifactName: ${productName}-macOS-${version}-${arch}.${ext}
+  # 无开发者证书时不尝试签名（正式分发请在 macOS 上配置签名与公证）
+  identity: null
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
 extraResources:
   - from: resources/
     to: resources/
