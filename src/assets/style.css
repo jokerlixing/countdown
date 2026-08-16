@@ -1,0 +1,127 @@
+:root {
+  --bg: #f5f6fa;
+  --card: #ffffff;
+  --text: #1b1d24;
+  --text-secondary: #6b7280;
+  --accent: #4f7cff;
+  --accent-hover: #3f6bf0;
+  --border: #e5e7eb;
+  --danger: #e5484d;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --radius: 14px;
+}
+
+html.dark {
+  --bg: #17181d;
+  --card: #212229;
+  --text: #eceef2;
+  --text-secondary: #9aa0ab;
+  --accent: #5c8bff;
+  --accent-hover: #6f99ff;
+  --border: #33353d;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  font-family:
+    'Segoe UI Variable Display', 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui,
+    sans-serif;
+  background: transparent;
+  color: var(--text);
+  overflow: hidden;
+}
+
+input,
+textarea {
+  user-select: text;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  background: none;
+  color: inherit;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.btn-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+.btn-icon:hover {
+  background: rgba(127, 137, 161, 0.15);
+  color: var(--text);
+}
+.btn-icon.drag-region {
+  -webkit-app-region: no-drag;
+}
+
+input[type='range'] {
+  accent-color: var(--accent);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

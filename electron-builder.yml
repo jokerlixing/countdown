@@ -1,0 +1,30 @@
+appId: com.lixing.desktopcountdown
+productName: 桌面倒计时
+copyright: Copyright © 2026 lixing
+directories:
+  output: release
+  buildResources: resources
+files:
+  - out/**
+  - "!**/.vscode/*"
+  - "!src/*"
+  - "!electron/*"
+  - "!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc*,lint-staged.config.js}"
+  - "!{.env,.env.*,.npmrc,pnpm-lock.yaml}"
+asarUnpack:
+  - resources/**
+win:
+  icon: resources/icons/icon.ico
+  executableName: DesktopCountdown
+  artifactName: ${productName}-Setup-${version}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 桌面倒计时
+extraResources:
+  - from: resources/
+    to: resources/
+portable:
+  artifactName: ${productName}-Portable-${version}.${ext}
