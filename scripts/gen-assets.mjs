@@ -121,23 +121,23 @@ function makeIco(png) {
 // ---------- WAV 编码 ----------
 function makeWav() {
   const rate = 44100
-  const seconds = 30 // 30 秒内连续提醒 20 次（每 1.5 秒一次）
+  const seconds = 30 // 30 秒内连续提醒 30 次（每 1 秒一次）
   const n = Math.floor(rate * seconds)
   const data = Buffer.alloc(n * 2)
   const notes = [
-    { start: 0, len: 0.32, freq: 1318.51 }, // E6
-    { start: 0.36, len: 0.34, freq: 880 } // A5
+    { start: 0, len: 0.3, freq: 1318.51 }, // E6
+    { start: 0.34, len: 0.3, freq: 880 } // A5
   ]
   for (let i = 0; i < n; i++) {
     const t = i / rate
     let s = 0
-    const round = Math.floor(t / 1.5)
-    if (round >= 0 && round < 20) {
-      const rt = t - round * 1.5
+    const round = Math.floor(t)
+    if (round >= 0 && round < 30) {
+      const rt = t - round
       for (const note of notes) {
         if (rt >= note.start && rt < note.start + note.len) {
           const dur = rt - note.start
-          const env = Math.min(1, dur * 80) * Math.exp(-dur * 7)
+          const env = Math.min(1, dur * 90) * Math.exp(-dur * 8)
           s += Math.sin(2 * Math.PI * note.freq * t) * env * 0.5
         }
       }
