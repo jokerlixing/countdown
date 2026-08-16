@@ -113,6 +113,11 @@ const api = window.desktopAPI
 }
 .icon {
   font-size: 17px;
+  width: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 .col {
   flex: 1;

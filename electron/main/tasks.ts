@@ -6,6 +6,7 @@ import { configStore } from './store'
 import { notify } from './tray'
 import { log } from './logger'
 import { scheduleAutoPush } from './autopush'
+import { showMainWindow } from './window'
 import type { Task, TaskType, TaskStatus, FinishRecord } from '../../shared/types'
 
 export type { Task, TaskType, TaskStatus, FinishRecord }
@@ -122,6 +123,8 @@ function onTaskFinished(t: Task): void {
   if (cfg.notificationEnabled) {
     notify('桌面倒计时', t.title === '倒计时' ? '倒计时结束！' : `${t.title}时间到！`)
   }
+  // 提醒时间到时自动弹出主窗口，确保用户看到提醒
+  showMainWindow()
   for (const w of BrowserWindow.getAllWindows()) {
     if (!w.isDestroyed()) w.webContents.send('task:finished', t.id)
   }

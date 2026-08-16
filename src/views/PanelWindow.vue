@@ -149,6 +149,11 @@ function timeOf(t: { type: string; remainingMs: number }): string {
 }
 .p-icon {
   font-size: 11px;
+  width: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 .p-label {
   font-size: 10px;
