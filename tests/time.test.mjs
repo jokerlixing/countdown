@@ -78,3 +78,29 @@ test('clamp01', () => {
   assert.equal(clamp01(-0.2), 0)
   assert.equal(clamp01(0.42), 0.42)
 })
+
+test('定点倒计时 <24h 显示小时而非天数', () => {
+  const pad = (n) => String(n).padStart(2, '0')
+  function datetimeMain(ms) {
+    const total = Math.max(0, ms)
+    if (total < 86_400_000) {
+      const h = Math.floor(total / 3_600_000)
+      const m = Math.floor((total % 3_600_000) / 60_000)
+      const s = Math.floor((total % 60_000) / 1000)
+      return { main: `${h} 小时`, sub: `${pad(m)}:${pad(s)}` }
+    }
+    const days = Math.floor(total / 86_400_000)
+    const rest = total - days * 86_400_000
+    const h = Math.floor(rest / 3_600_000)
+    const m = Math.floor((rest % 3_600_000) / 60_000)
+    const s = Math.floor((rest % 60_000) / 1000)
+    return { main: `${days} 天`, sub: `${pad(h)}:${pad(m)}:${pad(s)}` }
+  }
+  const r = datetimeMain(5 * 3_600_000 + 32 * 60_000 + 8_000)
+  assert.equal(r.main, '5 小时')
+  assert.equal(r.sub, '32:08')
+  assert.ok(!r.main.includes('天'))
+  const r2 = datetimeMain(3 * 86_400_000 + 2 * 3_600_000)
+  assert.equal(r2.main, '3 天')
+  assert.equal(r2.sub, '02:00:00')
+})

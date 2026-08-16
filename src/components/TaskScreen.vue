@@ -2,19 +2,26 @@
 import { computed } from 'vue'
 import type { Task } from '@/types'
 import { formatMs } from '@/utils/time'
-import { dateParts } from '@/utils/date'
+import { dateParts, datetimeMain } from '@/utils/date'
 import { taskColor } from '@/utils/color'
 import ProgressBar from './ProgressBar.vue'
 
 const props = defineProps<{ task: Task }>()
 const api = window.desktopAPI
 
-const timeText = computed(() =>
-  props.task.type === 'duration' ? formatMs(props.task.remainingMs) : `${dateParts(props.task.remainingMs).days} 天`
-)
-const subTime = computed(() =>
-  props.task.type === 'duration' ? '' : dateParts(props.task.remainingMs).hms
-)
+const timeText = computed(() => {
+  if (props.task.type === 'datetime') {
+    const d = datetimeMain(props.task.remainingMs)
+    return d.main
+  }
+  if (props.task.type === 'date') return `${dateParts(props.task.remainingMs).days} 天`
+  return formatMs(props.task.remainingMs)
+})
+const subTime = computed(() => {
+  if (props.task.type === 'datetime') return datetimeMain(props.task.remainingMs).sub
+  if (props.task.type === 'date') return dateParts(props.task.remainingMs).hms
+  return ''
+})
 const typeIcon = computed(() =>
   props.task.type === 'datetime' ? '⏰' : props.task.type === 'date' ? '🗓' : '⏱'
 )

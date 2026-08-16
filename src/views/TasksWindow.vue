@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useTasksStore } from '@/stores/tasks'
 import { formatMsShort } from '@/utils/time'
-import { dateParts } from '@/utils/date'
+import { dateParts, datetimeMain } from '@/utils/date'
 import { taskColor } from '@/utils/color'
 
 const tasks = useTasksStore()
@@ -11,7 +11,9 @@ const api = window.desktopAPI
 const list = computed(() => tasks.tasks.filter((t) => t.status !== 'finished' || t.type !== 'duration'))
 
 function timeOf(t: { type: string; remainingMs: number }): string {
-  return t.type === 'duration' ? formatMsShort(t.remainingMs) : `${dateParts(t.remainingMs).days}天`
+  if (t.type === 'datetime') return datetimeMain(t.remainingMs).main
+  if (t.type === 'date') return `${dateParts(t.remainingMs).days}天`
+  return formatMsShort(t.remainingMs)
 }
 </script>
 
@@ -30,7 +32,9 @@ function timeOf(t: { type: string; remainingMs: number }): string {
         <span class="i-icon">{{ t.type === 'datetime' ? '⏰' : t.type === 'date' ? '🗓' : '⏱' }}</span>
         <div class="mid">
           <div class="name" :style="{ color: taskColor(t.id) }" :title="t.title">{{ t.title }}</div>
-          <div v-if="t.type !== 'duration'" class="sub num">{{ dateParts(t.remainingMs).hms }}</div>
+          <div v-if="t.type !== 'duration'" class="sub num">{{
+            t.type === 'datetime' ? datetimeMain(t.remainingMs).sub : dateParts(t.remainingMs).hms
+          }}</div>
         </div>
         <div class="time num" :class="{ danger: t.status === 'running' && t.remainingMs < 10_000 }">
           {{ t.status === 'finished' && t.type === 'duration' ? '✓' : timeOf(t) }}

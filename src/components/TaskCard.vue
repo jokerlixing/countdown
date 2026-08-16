@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useTasksStore } from '@/stores/tasks'
 import type { Task } from '@/types'
 import { pad2 } from '@/utils/time'
-import { dateTaskProgress, dateParts, targetText } from '@/utils/date'
+import { dateTaskProgress, dateParts, datetimeMain, targetText } from '@/utils/date'
 import { taskColor } from '@/utils/color'
 import ProgressBar from './ProgressBar.vue'
 
@@ -14,6 +14,8 @@ const isDate = computed(() => props.task.type === 'date')
 const isDatetime = computed(() => props.task.type === 'datetime')
 const isTargetType = computed(() => isDate.value || isDatetime.value)
 const parts = computed(() => dateParts(props.task.remainingMs))
+/** 定点倒计时：<24h 显示剩余小时，不显示 0 天 */
+const dt = computed(() => (isDatetime.value ? datetimeMain(props.task.remainingMs) : null))
 const typeIcon = computed(() => (isDatetime.value ? '⏰' : isDate.value ? '🗓' : '⏱'))
 
 const percent = computed(() => {
@@ -72,7 +74,11 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
     </div>
 
     <div class="time num" :class="{ danger }">
-      <template v-if="isTargetType">
+      <template v-if="isDatetime && dt">
+        <span class="date-days">{{ dt.main }}</span>
+        <span class="date-hms num">{{ dt.sub }}</span>
+      </template>
+      <template v-else-if="isDate">
         <span class="date-days">{{ parts.days }}<small> 天</small></span>
         <span class="date-hms num">{{ parts.hms }}</span>
       </template>
