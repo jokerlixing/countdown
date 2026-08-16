@@ -103,6 +103,7 @@ export function registerIpc(): void {
   })
 
   ipcMain.handle('app:quit', () => quitApp())
+  ipcMain.handle('app:get-version', () => app.getVersion())
   ipcMain.handle('notify', (_e, title: string, body: string) => notify(title, body))
   ipcMain.handle('dev:is-packaged', () => app.isPackaged)
 }

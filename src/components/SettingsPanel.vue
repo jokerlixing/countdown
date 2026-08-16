@@ -10,6 +10,10 @@ const show = defineModel<boolean>('show', { required: true })
 const settings = useSettingsStore()
 const tasks = useTasksStore()
 
+// 关于页版本号自动取自应用本身（package.json），发版后无需手工更新
+const appVersion = ref('…')
+void window.desktopAPI.getAppVersion().then((v: string) => (appVersion.value = v))
+
 const confirmClear = ref(false)
 const cleared = ref(false)
 let resetTimer: ReturnType<typeof setTimeout> | null = null
@@ -110,7 +114,7 @@ function toggleAutoLaunch(v: boolean): void {
           <div class="section-title">关于</div>
           <div class="about">
             <div class="name">桌面倒计时 · Desktop Countdown</div>
-            <div class="ver">版本 0.3.0 · Electron + Vue 3</div>
+            <div class="ver">版本 {{ appVersion }} · Electron + Vue 3</div>
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 一款简单、美观、稳定的桌面倒计时小工具。
 
-- 版本：v0.8.0
+- 版本：v0.8.1
 - 支持系统：Windows 10 / 11 64 位；macOS（Apple Silicon / Intel）
 
 ## 项目简介
@@ -44,7 +44,7 @@ npm run build      # 构建主进程 / Preload / 渲染进程到 out/
 npm run dist       # 构建并打包 Windows NSIS 安装程序
 ```
 
-产物位于 `release/` 目录：`桌面倒计时-Setup-0.8.0.exe`。安装后无需 Node.js 环境，可独立运行。
+产物位于 `release/` 目录：`桌面倒计时-Setup-0.8.1.exe`。安装后无需 Node.js 环境，可独立运行。
 
 ### macOS 打包
 
@@ -86,6 +86,10 @@ npm run dist:mac
 ```
 
 ## 功能列表
+
+### v0.8.1 新增
+
+- **设置 → 关于：版本号自动显示**——改为运行时读取 `app.getVersion()`（即 package.json 的版本），每次发版"关于"自动同步，不再手工维护硬编码字符串；配套验证脚本 `scripts/verify-about.mjs` 可随时复检
 
 ### v0.8.0 新增
 

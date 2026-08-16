@@ -68,6 +68,7 @@ const desktopAPI = {
   setAutoLaunch: (value: boolean): Promise<void> =>
     ipcRenderer.invoke('app:set-auto-launch', value),
   quit: (): Promise<void> => ipcRenderer.invoke('app:quit'),
+  getAppVersion: (): Promise<string> => ipcRenderer.invoke('app:get-version'),
   notify: (title: string, body: string): Promise<void> =>
     ipcRenderer.invoke('notify', title, body)
 }
