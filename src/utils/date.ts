@@ -50,12 +50,17 @@ export function dateParts(ms: number): { days: number; hms: string } {
 }
 
 /**
- * 统一的主显示分层：<60min 主显示"X 分钟"+秒；60min~24h "X 小时"+分秒；>=24h "X 天"+时分秒。
- * 所有任务类型共用（时长倒计时不足 60 分钟时原本的小时位同样替换为分钟）。
+ * 统一的主显示分层：
+ * <60s 主显示"X 秒"（大字秒数替代分钟）；<60min "X 分钟"+秒；60min~24h "X 小时"+分秒；>=24h "X 天"+时分秒。
+ * 所有任务类型共用。
  */
 export function durationMain(ms: number): { main: string; sub: string } {
   const total = Math.max(0, ms)
   const pad = (n: number): string => String(n).padStart(2, '0')
+  if (total < 60_000) {
+    const s = Math.ceil(total / 1000)
+    return { main: `${s} 秒`, sub: '' }
+  }
   if (total < 3_600_000) {
     const m = Math.floor(total / 60_000)
     const s = Math.floor((total % 60_000) / 1000)

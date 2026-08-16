@@ -144,3 +144,13 @@ test('durationMain 统一分层：<60min 主显示分钟', async () => {
   assert.equal(day.main, '1 天')
   assert.equal(day.sub, '02:00:00')
 })
+
+test('durationMain <60s：秒数大字替代分钟', async () => {
+  const { durationMain } = await import('../src/utils/date.ts')
+  const s = durationMain(45_600)
+  assert.equal(s.main, '46 秒')
+  assert.equal(s.sub, '')
+  const edge = durationMain(60_000)
+  assert.equal(edge.main, '1 分钟')
+  assert.equal(edge.sub, '0 秒')
+})
