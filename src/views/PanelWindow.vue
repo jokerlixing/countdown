@@ -36,6 +36,26 @@ function timeOf(t: { type: string; remainingMs: number }): string {
   if (t.type === 'date') return `${dateParts(t.remainingMs).days}天`
   return formatMsShort(t.remainingMs)
 }
+
+// ---- 任务拖拽排序（保持未显示任务的占位不变） ----
+const dragId = ref<string | null>(null)
+const overId = ref<string | null>(null)
+
+function onDrop(targetId: string): void {
+  const from = dragId.value
+  dragId.value = null
+  overId.value = null
+  if (!from || from === targetId) return
+  const order = list.value.map((t) => t.id)
+  const fi = order.indexOf(from)
+  const ti = order.indexOf(targetId)
+  if (fi < 0 || ti < 0) return
+  order.splice(ti, 0, order.splice(fi, 1)[0])
+  const shown = new Set(order)
+  let i = 0
+  const full = tasks.tasks.map((t) => (shown.has(t.id) ? order[i++] : t.id))
+  void tasks.reorder(full)
+}
 </script>
 
 <template>
@@ -62,8 +82,19 @@ function timeOf(t: { type: string; remainingMs: number }): string {
     <div class="tasks">
       <div v-if="list.length === 0" class="empty">🎉 全部完成</div>
       <template v-else>
-        <!-- 少量任务时每行自动拉伸填满面板；多任务时紧凑排列并滚动 -->
-        <div v-for="t in list" :key="t.id" class="item" :class="{ running: t.status === 'running' }">
+        <!-- 少量任务时每行自动拉伸填满面板；多任务时紧凑排列并滚动；可拖拽排序 -->
+        <div
+          v-for="t in list"
+          :key="t.id"
+          class="item"
+          :class="{ running: t.status === 'running', dragging: dragId === t.id, 'drag-over': overId === t.id && dragId !== t.id }"
+          draggable="true"
+          @dragstart="dragId = t.id"
+          @dragend="dragId = null; overId = null"
+          @dragover.prevent="overId = t.id"
+          @dragleave="overId = null"
+          @drop.prevent="onDrop(t.id)"
+        >
           <span class="i-icon">{{ t.type === 'datetime' ? '⏰' : t.type === 'date' ? '🗓' : '⏱' }}</span>
           <div class="mid">
             <div class="name" :style="{ color: taskColor(t.id) }" :title="t.title">{{ t.title }}</div>
@@ -204,6 +235,16 @@ function timeOf(t: { type: string; remainingMs: number }): string {
   padding: 2px 6px;
   border-radius: 8px;
   transition: background 0.15s ease;
+  cursor: grab;
+}
+.item:active {
+  cursor: grabbing;
+}
+.item.dragging {
+  opacity: 0.4;
+}
+.item.drag-over {
+  box-shadow: 0 -2px 0 0 var(--accent);
 }
 .item.running {
   background: var(--accent-soft);

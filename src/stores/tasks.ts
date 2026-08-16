@@ -43,6 +43,14 @@ export const useTasksStore = defineStore('tasks', () => {
     await api.deleteTask(id)
   }
 
+  async function rename(id: string, title: string): Promise<void> {
+    await api.renameTask(id, title)
+  }
+
+  async function reorder(ids: string[]): Promise<void> {
+    await api.reorderTasks(ids)
+  }
+
   async function loadRecords(): Promise<void> {
     records.value = await api.getRecords()
   }
@@ -68,6 +76,8 @@ export const useTasksStore = defineStore('tasks', () => {
     pause,
     reset,
     remove,
+    rename,
+    reorder,
     loadRecords,
     removeRecord,
     getTask

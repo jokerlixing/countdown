@@ -20,6 +20,8 @@ import {
   pauseTask,
   resetTask,
   deleteTask,
+  renameTask,
+  reorderTasks,
   toggleAll,
   getRecords,
   deleteRecord,
@@ -46,6 +48,8 @@ export function registerIpc(): void {
   ipcMain.handle('tasks:pause', (_e, id: string) => pauseTask(id))
   ipcMain.handle('tasks:reset', (_e, id: string) => resetTask(id))
   ipcMain.handle('tasks:delete', (_e, id: string) => deleteTask(id))
+  ipcMain.handle('tasks:rename', (_e, id: string, title: string) => renameTask(id, title))
+  ipcMain.handle('tasks:reorder', (_e, ids: string[]) => reorderTasks(ids))
   ipcMain.handle('tasks:toggle-all', () => toggleAll())
 
   // ---- 记录 ----

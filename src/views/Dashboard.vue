@@ -58,6 +58,23 @@ function floatAllTasks(): void {
 function floatPanel(): void {
   void window.desktopAPI.openPanelWindow()
 }
+
+// ---- 任务拖拽排序 ----
+const dragId = ref<string | null>(null)
+const overId = ref<string | null>(null)
+
+function onDrop(targetId: string): void {
+  const from = dragId.value
+  dragId.value = null
+  overId.value = null
+  if (!from || from === targetId) return
+  const ids = tasks.tasks.map((t) => t.id)
+  const fi = ids.indexOf(from)
+  const ti = ids.indexOf(targetId)
+  if (fi < 0 || ti < 0) return
+  ids.splice(ti, 0, ids.splice(fi, 1)[0])
+  void tasks.reorder(ids)
+}
 </script>
 
 <template>
@@ -101,7 +118,20 @@ function floatPanel(): void {
           <div class="empty-hint">支持时长倒计时与日期 / 纪念日倒计时</div>
         </div>
         <div v-else class="task-list">
-          <TaskCard v-for="t in activeTasks" :key="t.id" :task="t" />
+          <div
+            v-for="t in activeTasks"
+            :key="t.id"
+            class="drag-row"
+            draggable="true"
+            :class="{ dragging: dragId === t.id, 'drag-over': overId === t.id && dragId !== t.id }"
+            @dragstart="dragId = t.id"
+            @dragend="dragId = null; overId = null"
+            @dragover.prevent="overId = t.id"
+            @dragleave="overId = null"
+            @drop.prevent="onDrop(t.id)"
+          >
+            <TaskCard :task="t" />
+          </div>
         </div>
       </template>
       <ProgressStats v-else-if="tab === 'progress'" />
@@ -216,6 +246,20 @@ function floatPanel(): void {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.drag-row {
+  cursor: grab;
+  transition: opacity 0.15s ease;
+}
+.drag-row:active {
+  cursor: grabbing;
+}
+.drag-row.dragging {
+  opacity: 0.4;
+}
+.drag-row.drag-over {
+  box-shadow: 0 -2px 0 0 var(--accent);
+  border-radius: var(--radius);
 }
 .ring-banner {
   position: absolute;

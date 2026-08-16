@@ -24,6 +24,9 @@ const desktopAPI = {
   pauseTask: (id: string): Promise<void> => ipcRenderer.invoke('tasks:pause', id),
   resetTask: (id: string): Promise<void> => ipcRenderer.invoke('tasks:reset', id),
   deleteTask: (id: string): Promise<void> => ipcRenderer.invoke('tasks:delete', id),
+  renameTask: (id: string, title: string): Promise<void> =>
+    ipcRenderer.invoke('tasks:rename', id, title),
+  reorderTasks: (ids: string[]): Promise<void> => ipcRenderer.invoke('tasks:reorder', ids),
   onTasksUpdated: (cb: (tasks: Task[]) => void): (() => void) => {
     const listener = (_e: unknown, tasks: Task[]): void => cb(tasks)
     ipcRenderer.on('tasks:updated', listener)

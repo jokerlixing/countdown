@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useTasksStore } from '@/stores/tasks'
 import type { Task } from '@/types'
 import { pad2 } from '@/utils/time'
@@ -9,6 +9,21 @@ import ProgressBar from './ProgressBar.vue'
 
 const props = defineProps<{ task: Task }>()
 const tasks = useTasksStore()
+
+const editing = ref(false)
+const draft = ref('')
+
+function startEdit(): void {
+  draft.value = props.task.title
+  editing.value = true
+}
+
+function commitEdit(): void {
+  if (!editing.value) return
+  editing.value = false
+  const next = draft.value.trim()
+  if (next && next !== props.task.title) void tasks.rename(props.task.id, next)
+}
 
 const isDate = computed(() => props.task.type === 'date')
 const isDatetime = computed(() => props.task.type === 'datetime')
@@ -62,7 +77,25 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
     <div class="head">
       <div class="name-row">
         <span class="type-icon">{{ typeIcon }}</span>
-        <span class="name" :style="{ color: taskColor(task.id) }" :title="task.title">{{ task.title }}</span>
+        <input
+          v-if="editing"
+          v-model="draft"
+          class="name-input"
+          maxlength="20"
+          autofocus
+          @keyup.enter="($event.target as HTMLInputElement).blur()"
+          @keyup.esc="editing = false"
+          @blur="commitEdit"
+        />
+        <span
+          v-else
+          class="name"
+          :style="{ color: taskColor(task.id) }"
+          :title="task.title + '（双击重命名）'"
+          @dblclick="startEdit"
+          >{{ task.title }}</span
+        >
+        <button class="btn-icon rename" title="重命名" @click="startEdit">✏</button>
         <span class="tag" :class="task.status">{{ statusLabel }}</span>
       </div>
       <div class="win-btns">
@@ -146,8 +179,26 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 158px;
+  max-width: 128px;
   letter-spacing: 0.3px;
+  cursor: text;
+}
+.btn-icon.rename {
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.name-input {
+  width: 128px;
+  padding: 3px 8px;
+  font-size: 14px;
+  font-weight: 800;
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  background: var(--card);
+  color: var(--text);
+  outline: none;
 }
 .tag {
   font-size: 10.5px;

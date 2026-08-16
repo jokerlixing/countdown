@@ -250,6 +250,35 @@ export function deleteTask(id: string): void {
   broadcast()
 }
 
+/** 重命名任务（含运行中） */
+export function renameTask(id: string, title: string): void {
+  const t = tasks.find((x) => x.id === id)
+  if (!t) return
+  t.title = title.trim() || '倒计时'
+  saveTasks()
+  broadcast()
+}
+
+/** 按给定 id 顺序重排任务（拖拽排序） */
+export function reorderTasks(ids: string[]): void {
+  const map = new Map(tasks.map((t) => [t.id, t]))
+  const next: Task[] = []
+  for (const id of ids) {
+    const t = map.get(id)
+    if (t) {
+      next.push(t)
+      map.delete(id)
+    }
+  }
+  // 未包含在 ids 中的新任务保持原有相对顺序，追加到末尾
+  for (const t of tasks) {
+    if (map.has(t.id)) next.push(t)
+  }
+  tasks = next
+  saveTasks()
+  broadcast()
+}
+
 export function toggleAll(): void {
   const running = tasks.some((t) => t.status === 'running')
   if (running) {
