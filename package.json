@@ -1,7 +1,7 @@
 {
   "name": "desktop-countdown",
   "productName": "桌面倒计时",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "一款简单、美观、稳定的 Windows 桌面倒计时小工具",
   "main": "out/main/index.js",
   "author": "lixing",
@@ -12,7 +12,7 @@
     "typecheck": "vue-tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
     "start": "electron-vite preview",
-    "dist": "electron-vite build && electron-builder --win",
+    "dist": "electron-vite build && node scripts/dist-win.mjs",
     "gen:assets": "node scripts/gen-assets.mjs"
   },
   "devDependencies": {

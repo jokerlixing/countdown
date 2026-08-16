@@ -37,7 +37,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
   transition: background 0.2s ease;
 }
 .switch.on {
-  background: var(--accent);
+  background: var(--accent-gradient);
 }
 .knob {
   position: absolute;

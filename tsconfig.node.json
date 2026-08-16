@@ -12,5 +12,5 @@
     "outDir": "out",
     "noEmit": true
   },
-  "include": ["electron/**/*.ts", "electron.vite.config.ts", "scripts/**/*.mjs"]
+  "include": ["electron/**/*.ts", "shared/**/*.ts", "electron.vite.config.ts", "scripts/**/*.mjs"]
 }

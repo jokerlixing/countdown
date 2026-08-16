@@ -5,14 +5,17 @@ import { registerIpc } from './ipc'
 import { configStore } from './store'
 import { initLogger, log } from './logger'
 import { registerGlobalShortcut, unregisterGlobalShortcuts } from './shortcut'
+import { loadTasks, startTicking, stopTicking } from './tasks'
 
 initLogger()
 log.info('App starting...', app.getVersion())
 
 registerIpc()
+loadTasks()
 
 app.whenReady().then(() => {
   try {
+    startTicking()
     createMainWindow()
     createTray()
     registerGlobalShortcut()
@@ -28,14 +31,15 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   unregisterGlobalShortcuts()
   destroyTray()
+  stopTicking()
   const win = getMainWindow()
   if (win && !win.isDestroyed()) {
     win.removeAllListeners('close')
-    try {
-      configStore.flush()
-    } catch {
-      /* ignore */
-    }
+  }
+  try {
+    configStore.flush()
+  } catch {
+    /* ignore */
   }
 })
 

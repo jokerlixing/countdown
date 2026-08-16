@@ -1,6 +1,14 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { formatMs, formatMsShort, pad2, clamp } from '../src/utils/time.ts'
+import {
+  yearProgress,
+  monthProgress,
+  dayProgress,
+  daysText,
+  dateTaskProgress,
+  clamp01
+} from '../src/utils/date.ts'
 
 test('pad2 补零', () => {
   assert.equal(pad2(0), '00')
@@ -14,7 +22,6 @@ test('formatMs 格式化 HH:MM:SS', () => {
   assert.equal(formatMs(3600 * 1000), '01:00:00')
   assert.equal(formatMs(0), '00:00:00')
   assert.equal(formatMs(-500), '00:00:00')
-  // 向上取整：还剩 1ms 也应显示为 1 秒
   assert.equal(formatMs(1), '00:00:01')
 })
 
@@ -37,7 +44,37 @@ test('基于 Date.now() 的剩余时间计算（模拟暂停/恢复）', () => {
   const now = () => 1000000 + 2500
   const remaining = Math.max(0, endTime - now())
   assert.equal(remaining, 7500)
-  // 暂停后恢复：重新计算 endTime
   endTime = 1000000 + 5000 + remaining
   assert.equal(endTime - (1000000 + 5000), 7500)
+})
+
+test('年度进度', () => {
+  const p = yearProgress(new Date(2026, 0, 1, 0, 0, 0))
+  assert.equal(p.percent, 0)
+  const mid = yearProgress(new Date(2026, 5, 1))
+  assert.ok(mid.percent > 0.4 && mid.percent < 0.55)
+  const end = yearProgress(new Date(2026, 11, 31, 23, 59, 59))
+  assert.ok(end.percent > 0.99 && end.percent <= 1)
+})
+
+test('月度/今日进度', () => {
+  assert.equal(monthProgress(new Date(2026, 7, 1, 0, 0, 0)).percent, 0)
+  const noon = dayProgress(new Date(2026, 7, 16, 12, 0, 0))
+  assert.ok(Math.abs(noon.percent - 0.5) < 0.001)
+})
+
+test('日期倒计时文本与进度', () => {
+  assert.equal(daysText(86_400_001), '2 天') // 向上取整
+  assert.equal(daysText(86_400_000), '1 天')
+  assert.equal(daysText(0), '0 天')
+  const now = new Date(2026, 7, 16).getTime()
+  assert.equal(dateTaskProgress(now, '2026-08-26', now), 0)
+  assert.ok(dateTaskProgress(now, '2026-08-26', now + 5 * 86_400_000) > 0.15)
+  assert.equal(dateTaskProgress(now, '2026-08-15', now), 1) // 目标早于创建，已到期
+})
+
+test('clamp01', () => {
+  assert.equal(clamp01(1.5), 1)
+  assert.equal(clamp01(-0.2), 0)
+  assert.equal(clamp01(0.42), 0.42)
 })

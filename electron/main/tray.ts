@@ -2,6 +2,7 @@ import { Tray, Menu, nativeImage, app, Notification } from 'electron'
 import path from 'path'
 import { getMainWindow, showMainWindow, quitApp } from './window'
 import { configStore } from './store'
+import { toggleAll, resetTask, getSnapshot } from './tasks'
 import { log } from './logger'
 
 let tray: Tray | null = null
@@ -30,8 +31,11 @@ export function rebuildMenu(): void {
   const menu = Menu.buildFromTemplate([
     { label: '打开主窗口', click: () => showMainWindow() },
     { type: 'separator' },
-    { label: '开始 / 暂停', click: () => getMainWindow()?.webContents.send('tray:toggle-timer') },
-    { label: '重置', click: () => getMainWindow()?.webContents.send('tray:reset-timer') },
+    { label: '开始 / 暂停', click: () => toggleAll() },
+    { label: '重置当前任务', click: () => {
+      const running = getSnapshot().find((t) => t.status === 'running')
+      if (running) resetTask(running.id)
+    } },
     {
       label: '始终置顶',
       type: 'checkbox',

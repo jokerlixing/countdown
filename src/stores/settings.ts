@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Settings, UiMode } from '@/types'
+import type { Settings } from '@/types'
 
 export const useSettingsStore = defineStore('settings', () => {
   const loaded = ref(false)
@@ -15,7 +15,8 @@ export const useSettingsStore = defineStore('settings', () => {
   const theme = ref<'light' | 'dark' | 'system'>('system')
   const autoLaunch = ref(false)
   const closeToTray = ref(true)
-  const uiMode = ref<UiMode>('full')
+  const autoPushEnabled = ref(false)
+  const autoPushRepoPath = ref('')
 
   async function load(): Promise<void> {
     const cfg = await window.desktopAPI.getConfig()
@@ -36,17 +37,13 @@ export const useSettingsStore = defineStore('settings', () => {
     if (cfg.theme !== undefined) theme.value = cfg.theme
     if (cfg.autoLaunch !== undefined) autoLaunch.value = cfg.autoLaunch
     if (cfg.closeToTray !== undefined) closeToTray.value = cfg.closeToTray
-    if (cfg.uiMode !== undefined) uiMode.value = cfg.uiMode
+    if (cfg.autoPushEnabled !== undefined) autoPushEnabled.value = cfg.autoPushEnabled
+    if (cfg.autoPushRepoPath !== undefined) autoPushRepoPath.value = cfg.autoPushRepoPath
   }
 
   function patch(partial: Partial<Settings>): void {
     apply(partial)
     window.desktopAPI.patchConfig(partial as Record<string, unknown>)
-  }
-
-  function setUiMode(mode: UiMode): void {
-    uiMode.value = mode
-    window.desktopAPI.setMode(mode)
   }
 
   return {
@@ -62,9 +59,9 @@ export const useSettingsStore = defineStore('settings', () => {
     theme,
     autoLaunch,
     closeToTray,
-    uiMode,
+    autoPushEnabled,
+    autoPushRepoPath,
     load,
-    patch,
-    setUiMode
+    patch
   }
 })

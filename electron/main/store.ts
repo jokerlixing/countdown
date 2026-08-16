@@ -2,30 +2,9 @@ import path from 'path'
 import fs from 'fs'
 import { app, ipcMain } from 'electron'
 import { log } from './logger'
+import type { AppConfig, WindowBounds } from '../../shared/types'
 
-export interface WindowBounds {
-  x: number
-  y: number
-  width: number
-  height: number
-}
-
-export interface AppConfig {
-  defaultDurationSec: number
-  lastDurationSec: number
-  title: string
-  bounds: WindowBounds | null
-  alwaysOnTop: boolean
-  opacity: number
-  soundEnabled: boolean
-  notificationEnabled: boolean
-  volume: number
-  theme: 'light' | 'dark' | 'system'
-  autoLaunch: boolean
-  miniMode: boolean
-  closeToTray: boolean
-  uiMode: 'full' | 'float' | 'mini'
-}
+export type { AppConfig, WindowBounds }
 
 export const defaultConfig: AppConfig = {
   defaultDurationSec: 25 * 60,
@@ -41,7 +20,9 @@ export const defaultConfig: AppConfig = {
   autoLaunch: false,
   miniMode: false,
   closeToTray: true,
-  uiMode: 'full'
+  uiMode: 'full',
+  autoPushEnabled: false,
+  autoPushRepoPath: ''
 }
 
 function configFile(): string {

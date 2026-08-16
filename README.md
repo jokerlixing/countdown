@@ -2,70 +2,67 @@
 
 一款简单、美观、稳定的 Windows 桌面倒计时小工具。
 
-- 版本：v0.1.0
+- 版本：v0.2.0
 - 支持系统：Windows 10 / 11 64 位
 
 ## 项目简介
 
-视觉中心是倒计时数字的极简效率工具。支持快捷预设、自定义时长、任务命名、桌面悬浮窗、极简模式、窗口置顶、透明度调节、系统托盘常驻、开机启动、结束提示音与 Windows 系统通知。所有数据仅保存在本地。
+以倒计时数字为视觉中心的极简效率工具。v0.2.0 全面升级为**多任务多窗口**架构：支持同时运行多个时长倒计时与日期/纪念日倒计时，每个任务可单独打开悬浮窗、极简窗或全屏模式；新增年度/月度/今日进度、任务完成记录与查询删除、记录自动推送 Git。所有数据仅保存在本地。
 
 ## 技术栈
 
-- Electron 33（主进程 + Preload contextBridge + 渲染进程）
+- Electron 33（主进程统一管理任务状态，多窗口广播同步）
 - Vue 3.5（`<script setup lang="ts">` Composition API）
-- TypeScript（严格模式）
+- TypeScript（严格模式，主进程/渲染层共享 `shared/types.ts`）
 - Vite 5 + electron-vite 2
-- Pinia 3（timerStore / settingsStore / uiStore）
-- electron-builder 25（Windows NSIS 安装包 + Portable）
+- Pinia 3（tasksStore / settingsStore，渲染层为 IPC 镜像）
+- electron-builder 25（Windows NSIS 安装包）
 
 ## 安装依赖
 
 ```bash
-npm install        # 本项目使用 npm（Node.js >= 20）
+npm install        # Node.js >= 20，已配置 npmmirror 镜像
 ```
 
 ## 开发运行
 
 ```bash
-npm run dev        # 启动 electron-vite 开发环境（热更新）
+npm run dev        # electron-vite 开发环境（热更新）
 ```
 
 ## 单元测试与类型检查
 
 ```bash
-npm test           # node --test 运行 tests/ 下的纯逻辑测试
-npm run typecheck  # vue-tsc --noEmit 全量类型检查
+npm test           # 时间格式化 / 年月日进度 / 日期倒计时等 9 项测试
+npm run typecheck  # vue-tsc 全量类型检查（main + renderer）
 ```
 
 ## 构建与打包
 
 ```bash
 npm run build      # 构建主进程 / Preload / 渲染进程到 out/
-npm run dist       # 构建并打包 Windows 安装程序（NSIS + Portable）
+npm run dist       # 构建并打包 Windows NSIS 安装程序
 ```
 
-产物位于 `release/` 目录：
-
-- `桌面倒计时-Setup-0.1.0.exe`（NSIS 安装包，用户可选择安装目录与是否创建桌面快捷方式）
-- `桌面倒计时-Portable-0.1.0.exe`（便携版）
-
-安装后无需 Node.js 环境，可独立运行。
+产物位于 `release/` 目录：`桌面倒计时-Setup-0.2.0.exe`。安装后无需 Node.js 环境，可独立运行。
 
 ## 目录结构
 
 ```
 ├─ electron/
-│  ├─ main/            # 主进程：窗口、托盘、IPC、配置、通知、快捷键、日志
+│  ├─ main/            # 主进程：多任务 TaskManager、多窗口、托盘、IPC、记录、自动推送、日志
 │  └─ preload/         # contextBridge 安全暴露白名单 API
+├─ shared/             # 主进程与渲染层共享类型
 ├─ src/
-│  ├─ assets/          # 全局样式（浅色/深色主题变量）
-│  ├─ components/      # TimerDisplay / TimerControls / QuickTimer / FloatingTimer / SettingsPanel 等
+│  ├─ assets/          # 全局样式（浅色/深色主题、渐变、圆角卡片）
+│  ├─ components/      # TaskCard / NewTaskForm / ProgressStats / HistoryList / TaskFloat / TaskScreen 等
 │  ├─ composables/     # useShortcuts（窗口内快捷键）
 │  ├─ services/        # sound（提示音播放）
-│  ├─ stores/          # Pinia：timer / settings / ui
-│  ├─ types/           # 共享类型定义
-│  ├─ utils/           # 时间格式化纯函数
-│  ├─ App.vue
+│  ├─ stores/          # Pinia：tasks / settings（IPC 镜像 store）
+│  ├─ types/           # 渲染层类型（re-export shared）
+│  ├─ utils/           # 时间格式化 / 年月日进度纯函数
+│  ├─ views/           # Dashboard（主仪表盘）/ TaskWindow（任务小窗）
+│  ├─ App.vue          # 按 URL 参数路由（?view=task&id=..&mode=..）
 │  └─ main.ts
 ├─ public/             # finish.wav（渲染进程提示音）
 ├─ resources/          # 图标（icon.ico / icon.png）与提示音
@@ -77,38 +74,43 @@ npm run dist       # 构建并打包 Windows 安装程序（NSIS + Portable）
 
 ## 功能列表
 
-- 核心倒计时：时/分/秒自定义输入，快捷预设 5/10/15/25/30/60 分钟
-- 控制：开始 / 暂停 / 继续 / 重置，清晰状态机防连点异常
-- 计时准确性：基于 `endTime - Date.now()` 计算，250ms 仅刷新 UI，后台/降频不产生误差
-- 桌面悬浮模式：无边框小窗，可拖拽、可置顶，鼠标移入显示控制按钮
-- 极简模式：仅标题 + 时间，鼠标移入显示操作
-- 始终置顶、窗口透明度 60%~100%（实时生效并持久化）
-- 窗口位置/大小记忆，换屏/分辨率变化自动回到可见区域
-- 倒计时标题（学习/工作/健身……），结束系统通知 + 提示音（音量可调）
-- 系统托盘常驻：关闭默认最小化到托盘，双击托盘恢复，托盘菜单可开始/暂停/重置/置顶/退出
-- 开机自动启动（`app.setLoginItemSettings`）
-- 浅色 / 深色 / 跟随系统主题
-- 本地 JSON 配置持久化，重启恢复全部设置
+### v0.2.0 新增
+
+- **多任务倒计时**：任意数量任务同时计时，互不干扰；主进程统一计时（`endTime - Date.now()`），多窗口实时同步
+- **日期 / 纪念日倒计时**：选择目标日期，按天显示剩余天数与推进百分比
+- **进度条与百分比**：每个任务卡片实时进度；**年度 / 月度 / 今日进度**独立页面（含已过/剩余天数）
+- **多窗口显示**：每个任务可单独打开**悬浮窗**（230×118，可拖拽置顶）、**极简窗**（168×74，仅时间，移入显示操作）、**全屏模式**（大字号演示模式，Esc 退出）
+- **完成记录**：倒计时结束自动记录，可按关键词/类型查询，可删除
+- **记录自动推送 Git**：设置中开启并指定仓库路径后，完成记录防抖 30 秒提交推送到仓库 `records/records.json`
+- **UI 全面美化**：渐变主色、圆角卡片、状态标签、任务角标、悬浮动效；悬浮窗比 v0.1 缩小约 1/3
+
+### 基础功能（v0.1.0 起）
+
+- 快捷预设 5/10/15/25/30/60 分钟 + 自定义时分秒；开始/暂停/继续/重置
+- 始终置顶、透明度 60%~100%、窗口位置记忆（越屏自动回正）
+- 系统托盘常驻、Windows 通知、提示音（音量可调）
+- 开机自动启动、浅色/深色/跟随系统主题、本地配置持久化
 
 ## 快捷键
 
 | 按键 | 作用 |
 | ---- | ---- |
-| Space | 开始 / 暂停（输入框内不触发） |
-| R | 重置 |
-| Esc | 关闭设置 / 退出极简、悬浮模式 |
-| Ctrl+Alt+T（全局） | 显示 / 隐藏窗口 |
+| Space | 开始 / 暂停当前任务（输入框内不触发） |
+| R | 重置运行中的任务 |
+| Esc | 关闭设置 / 退出全屏 |
+| Ctrl+Alt+T（全局） | 显示 / 隐藏主窗口 |
 
 ## 已知问题
 
-- 图标为脚本生成的临时占位图标（蓝底白色时钟），后续可替换正式品牌图标。
-- 悬浮/极简模式下窗口尺寸固定，暂不支持拖拽调整大小。
-- Windows 通知在系统开启"专注助手"时可能不显示。
+- 本机杀毒软件可能间歇性锁定新编译的 exe，导致 electron-builder 偶发失败，重跑即可
+- 图标为脚本生成的临时占位图标
+- 悬浮/极简窗口尺寸固定；Windows“专注助手”开启时通知可能不显示
+- 自动推送要求配置的目录是 Git 仓库且有推送权限；安装版默认关闭
 
 ## 路线图（下一版本）
 
-- 多任务倒计时列表
-- 倒计时结束前的阶段性提醒（剩余 1 分钟提示）
+- 任务重命名与编辑时长
+- 倒计时结束前阶段性提醒（剩余 1 分钟）
 - 悬浮窗尺寸/字体自定义
-- 更多提示音可选
-- 白噪声 / 番茄工作法统计
+- 完成记录导出 CSV
+- 番茄工作法统计与热力图
