@@ -7,7 +7,7 @@ import { dateParts } from '@/utils/date'
 
 const tasks = useTasksStore()
 
-const mode = ref<TaskType>('datetime')
+const mode = ref<TaskType>('duration')
 const title = ref('')
 const hours = ref(0)
 const minutes = ref(25)
@@ -20,8 +20,8 @@ const presets = [5, 10, 15, 25, 30, 60]
 const today = new Date().toISOString().slice(0, 10)
 
 const modes: { value: TaskType; label: string }[] = [
-  { value: 'datetime', label: '⏰ 定点倒计时' },
   { value: 'duration', label: '⏱ 时长倒计时' },
+  { value: 'datetime', label: '⏰ 定点倒计时' },
   { value: 'date', label: '📅 日期 / 纪念日' }
 ]
 
