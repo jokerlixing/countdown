@@ -125,3 +125,22 @@ test('年进度跨年重置：12 月 31 日末接近 100%，1 月 1 日 0 点归
   const start = yearProgress(new Date(2027, 0, 1, 0, 0, 0))
   assert.equal(start.percent, 0)
 })
+
+test('durationMain 统一分层：<60min 主显示分钟', async () => {
+  const { durationMain } = await import('../src/utils/date.ts')
+  const min = durationMain(45 * 60_000 + 30_000)
+  assert.equal(min.main, '45 分钟')
+  assert.equal(min.sub, '30 秒')
+  assert.ok(!min.main.includes('小时') && !min.main.includes('天'))
+  // 恰好 59:59 仍是分钟层
+  const edge = durationMain(59 * 60_000 + 59_000)
+  assert.equal(edge.main, '59 分钟')
+  // 60min 起进入小时层
+  const hour = durationMain(3_600_000)
+  assert.equal(hour.main, '1 小时')
+  assert.equal(hour.sub, '00:00')
+  // 24h 起进入天层
+  const day = durationMain(86_400_000 + 2 * 3_600_000)
+  assert.equal(day.main, '1 天')
+  assert.equal(day.sub, '02:00:00')
+})

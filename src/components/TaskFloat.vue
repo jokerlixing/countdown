@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import type { Task } from '@/types'
 import { formatMsShort } from '@/utils/time'
-import { dateTaskProgress, dateParts, datetimeMain } from '@/utils/date'
+import { dateTaskProgress, durationMain } from '@/utils/date'
 import { taskColor } from '@/utils/color'
 import ProgressBar from './ProgressBar.vue'
 
@@ -10,15 +10,14 @@ const props = defineProps<{ task: Task; mini: boolean }>()
 const hover = ref(false)
 let hideTimer: ReturnType<typeof setTimeout> | null = null
 
-const parts = computed(() => dateParts(props.task.remainingMs))
-/** 定点倒计时：<24h 主显示剩余小时（不显示 0 天） */
-const dt = computed(() => (props.task.type === 'datetime' ? datetimeMain(props.task.remainingMs) : null))
+/** 统一分层显示：定点/纪念日始终；时长倒计时 <60min 时小时位替换为分钟 */
+const dm = computed(() => durationMain(props.task.remainingMs))
+const isTargetType = computed(() => props.task.type !== 'duration')
+const useLayered = computed(() => isTargetType.value || props.task.remainingMs < 3_600_000)
 
-const timeText = computed(() => {
-  if (props.task.type === 'datetime') return dt.value ? dt.value.main : formatMsShort(props.task.remainingMs)
-  if (props.task.type === 'date') return `${parts.value.days} 天`
-  return formatMsShort(props.task.remainingMs)
-})
+const timeText = computed(() =>
+  useLayered.value ? dm.value.main : formatMsShort(props.task.remainingMs)
+)
 
 const percent = computed(() => {
   if (props.task.type === 'date' && props.task.targetDate) {
@@ -69,9 +68,7 @@ function leave(): void {
       </Transition>
     </div>
     <div class="time num" :class="{ danger }">{{ timeText }}</div>
-    <div v-if="task.type !== 'duration'" class="date-hms num">{{
-      task.type === 'datetime' && dt ? dt.sub : parts.hms
-    }}</div>
+    <div v-if="useLayered" class="date-hms num">{{ dm.sub }}</div>
     <ProgressBar v-if="!mini" :percent="percent" thin />
   </div>
 </template>

@@ -50,12 +50,17 @@ export function dateParts(ms: number): { days: number; hms: string } {
 }
 
 /**
- * 定点倒计时主显示：不足 24 小时不显示天数/0 天，改显示剩余小时数。
- * <24h -> main "X 小时"、sub "MM:SS"；>=24h -> main "X 天"、sub "HH:MM:SS"
+ * 统一的主显示分层：<60min 主显示"X 分钟"+秒；60min~24h "X 小时"+分秒；>=24h "X 天"+时分秒。
+ * 所有任务类型共用（时长倒计时不足 60 分钟时原本的小时位同样替换为分钟）。
  */
-export function datetimeMain(ms: number): { main: string; sub: string } {
+export function durationMain(ms: number): { main: string; sub: string } {
   const total = Math.max(0, ms)
   const pad = (n: number): string => String(n).padStart(2, '0')
+  if (total < 3_600_000) {
+    const m = Math.floor(total / 60_000)
+    const s = Math.floor((total % 60_000) / 1000)
+    return { main: `${m} 分钟`, sub: `${s} 秒` }
+  }
   if (total < 86_400_000) {
     const h = Math.floor(total / 3_600_000)
     const m = Math.floor((total % 3_600_000) / 60_000)
@@ -64,6 +69,14 @@ export function datetimeMain(ms: number): { main: string; sub: string } {
   }
   const p = dateParts(total)
   return { main: `${p.days} 天`, sub: p.hms }
+}
+
+/**
+ * 定点倒计时主显示：不足 24 小时不显示天数/0 天，改显示剩余小时数。
+ * <24h -> main "X 小时"、sub "MM:SS"；>=24h -> main "X 天"、sub "HH:MM:SS"
+ */
+export function datetimeMain(ms: number): { main: string; sub: string } {
+  return durationMain(ms)
 }
 
 /** 日期倒计时进度：从创建日到目标日(或指定时刻)的已过比例 */

@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useTasksStore } from '@/stores/tasks'
 import type { Task } from '@/types'
 import { pad2 } from '@/utils/time'
-import { dateTaskProgress, dateParts, datetimeMain, targetText } from '@/utils/date'
+import { dateTaskProgress, durationMain, targetText } from '@/utils/date'
 import { taskColor } from '@/utils/color'
 import ProgressBar from './ProgressBar.vue'
 
@@ -28,9 +28,12 @@ function commitEdit(): void {
 const isDate = computed(() => props.task.type === 'date')
 const isDatetime = computed(() => props.task.type === 'datetime')
 const isTargetType = computed(() => isDate.value || isDatetime.value)
-const parts = computed(() => dateParts(props.task.remainingMs))
-/** 定点倒计时：<24h 显示剩余小时，不显示 0 天 */
-const dt = computed(() => (isDatetime.value ? datetimeMain(props.task.remainingMs) : null))
+/** 定点/纪念日与 <60min 的时长倒计时统一走分层显示（分钟/小时/天） */
+const dm = computed(() => durationMain(props.task.remainingMs))
+/** 时长倒计时 >=60min 保持 HH:MM:SS */
+const showDurationHms = computed(
+  () => props.task.type === 'duration' && props.task.remainingMs >= 3_600_000
+)
 const typeIcon = computed(() => (isDatetime.value ? '⏰' : isDate.value ? '🗓' : '⏱'))
 
 const percent = computed(() => {
@@ -107,15 +110,13 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
     </div>
 
     <div class="time num" :class="{ danger }">
-      <template v-if="isDatetime && dt">
-        <span class="date-days">{{ dt.main }}</span>
-        <span class="date-hms num">{{ dt.sub }}</span>
+      <template v-if="showDurationHms">
+        {{ hms.h }}<span class="colon">:</span>{{ hms.m }}<span class="colon">:</span>{{ hms.s }}
       </template>
-      <template v-else-if="isDate">
-        <span class="date-days">{{ parts.days }}<small> 天</small></span>
-        <span class="date-hms num">{{ parts.hms }}</span>
+      <template v-else>
+        <span class="date-days">{{ dm.main }}</span>
+        <span class="date-hms num">{{ dm.sub }}</span>
       </template>
-      <template v-else>{{ hms.h }}<span class="colon">:</span>{{ hms.m }}<span class="colon">:</span>{{ hms.s }}</template>
     </div>
 
     <div class="progress-row">

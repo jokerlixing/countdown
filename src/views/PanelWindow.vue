@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useTasksStore } from '@/stores/tasks'
-import { yearProgress, monthProgress, dayProgress, dateParts, datetimeMain, type PeriodProgress } from '@/utils/date'
+import { yearProgress, monthProgress, dayProgress, durationMain, type PeriodProgress } from '@/utils/date'
 import { formatMsShort } from '@/utils/time'
 import { taskColor } from '@/utils/color'
 import ProgressBar from '@/components/ProgressBar.vue'
@@ -32,9 +32,12 @@ const progressRows = computed(() => [
 const list = computed(() => tasks.tasks.filter((t) => t.status !== 'finished' || t.type !== 'duration'))
 
 function timeOf(t: { type: string; remainingMs: number }): string {
-  if (t.type === 'datetime') return datetimeMain(t.remainingMs).main
-  if (t.type === 'date') return `${dateParts(t.remainingMs).days}天`
-  return formatMsShort(t.remainingMs)
+  if (t.type === 'duration' && t.remainingMs >= 3_600_000) return formatMsShort(t.remainingMs)
+  return durationMain(t.remainingMs).main
+}
+function subOf(t: { type: string; remainingMs: number }): string {
+  if (t.type === 'duration' && t.remainingMs >= 3_600_000) return ''
+  return durationMain(t.remainingMs).sub
 }
 
 // ---- 任务拖拽排序（保持未显示任务的占位不变） ----
@@ -98,9 +101,7 @@ function onDrop(targetId: string): void {
           <span class="i-icon">{{ t.type === 'datetime' ? '⏰' : t.type === 'date' ? '🗓' : '⏱' }}</span>
           <div class="mid">
             <div class="name" :style="{ color: taskColor(t.id) }" :title="t.title">{{ t.title }}</div>
-            <div v-if="t.type !== 'duration'" class="sub num">{{
-              t.type === 'datetime' ? datetimeMain(t.remainingMs).sub : dateParts(t.remainingMs).hms
-            }}</div>
+            <div v-if="subOf(t)" class="sub num">{{ subOf(t) }}</div>
           </div>
           <div class="time num" :class="{ danger: t.status === 'running' && t.remainingMs < 10_000 }">
             {{ t.status === 'finished' && t.type === 'duration' ? '✓' : timeOf(t) }}

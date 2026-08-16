@@ -2,26 +2,22 @@
 import { computed } from 'vue'
 import type { Task } from '@/types'
 import { formatMs } from '@/utils/time'
-import { dateParts, datetimeMain } from '@/utils/date'
+import { durationMain } from '@/utils/date'
 import { taskColor } from '@/utils/color'
 import ProgressBar from './ProgressBar.vue'
 
 const props = defineProps<{ task: Task }>()
 const api = window.desktopAPI
 
-const timeText = computed(() => {
-  if (props.task.type === 'datetime') {
-    const d = datetimeMain(props.task.remainingMs)
-    return d.main
-  }
-  if (props.task.type === 'date') return `${dateParts(props.task.remainingMs).days} 天`
-  return formatMs(props.task.remainingMs)
-})
-const subTime = computed(() => {
-  if (props.task.type === 'datetime') return datetimeMain(props.task.remainingMs).sub
-  if (props.task.type === 'date') return dateParts(props.task.remainingMs).hms
-  return ''
-})
+/** 时长倒计时 >=60min 大字 HH:MM:SS；其余（含 <60min）走分层显示 */
+const showDurationHms = computed(
+  () => props.task.type === 'duration' && props.task.remainingMs >= 3_600_000
+)
+const dm = computed(() => durationMain(props.task.remainingMs))
+const timeText = computed(() =>
+  showDurationHms.value ? formatMs(props.task.remainingMs) : dm.value.main
+)
+const subTime = computed(() => (showDurationHms.value ? '' : dm.value.sub))
 const typeIcon = computed(() =>
   props.task.type === 'datetime' ? '⏰' : props.task.type === 'date' ? '🗓' : '⏱'
 )
