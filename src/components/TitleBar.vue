@@ -1,14 +1,31 @@
 <script setup lang="ts">
+import { useSettingsStore } from '@/stores/settings'
+
 defineProps<{ title: string }>()
+const settings = useSettingsStore()
 const isMac = window.desktopAPI.platform === 'darwin'
+
 const minimize = (): void => window.desktopAPI.minimize()
 const close = (): void => window.desktopAPI.close()
+
+function togglePin(): void {
+  void window.desktopAPI.setAlwaysOnTop(!settings.alwaysOnTop)
+  settings.patch({ alwaysOnTop: !settings.alwaysOnTop })
+}
 </script>
 
 <template>
   <div class="title-bar" :class="{ mac: isMac }">
     <span class="title">{{ title }}</span>
     <div v-if="!isMac" class="actions">
+      <button
+        class="tb-btn pin"
+        :class="{ active: settings.alwaysOnTop }"
+        :title="settings.alwaysOnTop ? '取消置顶' : '窗口置顶'"
+        @click="togglePin"
+      >
+        📌
+      </button>
       <button class="tb-btn" title="最小化" @click="minimize">─</button>
       <button class="tb-btn close" title="关闭到托盘" @click="close">✕</button>
     </div>
@@ -48,6 +65,18 @@ const close = (): void => window.desktopAPI.close()
 .tb-btn:hover {
   background: rgba(127, 137, 161, 0.2);
   color: var(--text);
+}
+.tb-btn.pin {
+  font-size: 13px;
+  opacity: 0.65;
+}
+.tb-btn.pin:hover {
+  opacity: 1;
+}
+.tb-btn.pin.active {
+  opacity: 1;
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 .tb-btn.close:hover {
   background: var(--danger);

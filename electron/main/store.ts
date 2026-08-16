@@ -20,9 +20,7 @@ export const defaultConfig: AppConfig = {
   autoLaunch: false,
   miniMode: false,
   closeToTray: true,
-  uiMode: 'full',
-  autoPushEnabled: false,
-  autoPushRepoPath: ''
+  uiMode: 'full'
 }
 
 function configFile(): string {

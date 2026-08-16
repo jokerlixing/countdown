@@ -7,12 +7,11 @@ import TitleBar from '@/components/TitleBar.vue'
 import NewTaskForm from '@/components/NewTaskForm.vue'
 import TaskCard from '@/components/TaskCard.vue'
 import ProgressStats from '@/components/ProgressStats.vue'
-import HistoryList from '@/components/HistoryList.vue'
 import SettingsPanel from '@/components/SettingsPanel.vue'
 
 const tasks = useTasksStore()
 
-const tab = ref<'tasks' | 'progress' | 'history'>('tasks')
+const tab = ref<'tasks' | 'progress'>('tasks')
 const showSettings = ref(false)
 const ringing = ref(false)
 const ringTitle = ref('')
@@ -28,12 +27,10 @@ onMounted(() => {
 
 const tabs = computed(() => [
   { key: 'tasks' as const, label: '倒计时', badge: tasks.runningCount },
-  { key: 'progress' as const, label: '进度', badge: 0 },
-  { key: 'history' as const, label: '记录', badge: tasks.records.length }
+  { key: 'progress' as const, label: '进度', badge: 0 }
 ])
 
 const activeTasks = computed(() => tasks.tasks.filter((t) => t.status !== 'finished' || t.type !== 'duration'))
-const finishedToday = computed(() => tasks.tasks.filter((t) => t.status === 'finished' && t.type !== 'date'))
 
 useShortcuts({
   onSpace: () => {
@@ -83,11 +80,7 @@ function onDrop(targetId: string): void {
     <div class="header">
       <div class="date-block">
         <div class="hello">今天也要开心呀，今天也要加油啊！</div>
-        <div class="done-count" v-if="tasks.runningCount > 0 || finishedToday.length">
-          {{ tasks.runningCount > 0 ? `⏱ ${tasks.runningCount} 个任务进行中` : '' }}
-          {{ tasks.runningCount > 0 && finishedToday.length ? ' · ' : '' }}
-          {{ finishedToday.length ? `已完成 ${finishedToday.length} 个 ⚡` : '' }}
-        </div>
+        <div class="done-count" v-if="tasks.runningCount > 0">⏱ {{ tasks.runningCount }} 个任务进行中</div>
       </div>
       <div class="header-btns">
         <button class="btn-icon" title="整合面板：任务+进度合并悬浮" @click="floatPanel">🧩</button>
@@ -135,7 +128,6 @@ function onDrop(targetId: string): void {
         </div>
       </template>
       <ProgressStats v-else-if="tab === 'progress'" />
-      <HistoryList v-else />
     </div>
 
     <SettingsPanel v-model:show="showSettings" />

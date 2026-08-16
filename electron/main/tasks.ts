@@ -5,23 +5,21 @@ import { app, BrowserWindow } from 'electron'
 import { configStore } from './store'
 import { notify } from './tray'
 import { log } from './logger'
-import { scheduleAutoPush } from './autopush'
-import { showMainWindow } from './window'
-import type { Task, TaskType, TaskStatus, FinishRecord } from '../../shared/types'
+import { showMainWindowToFront } from './window'
+import type { Task, TaskType, TaskStatus } from '../../shared/types'
 
-export type { Task, TaskType, TaskStatus, FinishRecord }
+export type { Task, TaskType, TaskStatus }
 
 const TICK_MS = 250
+/** 完成后自动从所有列表消失的延时 */
+const AUTO_HIDE_MS = 30_000
 
 let tasks: Task[] = []
-let records: FinishRecord[] = []
 let ticker: NodeJS.Timeout | null = null
+const hideTimers = new Map<string, NodeJS.Timeout>()
 
 function tasksFile(): string {
   return path.join(app.getPath('userData'), 'tasks.json')
-}
-function recordsFile(): string {
-  return path.join(app.getPath('userData'), 'records.json')
 }
 
 export function loadTasks(): void {
@@ -30,13 +28,9 @@ export function loadTasks(): void {
   } catch {
     tasks = []
   }
-  try {
-    records = JSON.parse(fs.readFileSync(recordsFile(), 'utf-8')) as FinishRecord[]
-  } catch {
-    records = []
-  }
-  // 启动时校正：已过期的运行中任务标记为结束（不补记录）
+  // 启动时校正：已完成的任务不再重新出现，已过期的运行任务标记为结束
   const now = Date.now()
+  tasks = tasks.filter((t) => t.status !== 'finished')
   for (const t of tasks) {
     if (t.type === 'datetime') {
       if (t.targetTime === undefined || t.targetTime === null) t.targetTime = null
@@ -58,15 +52,6 @@ function saveTasks(): void {
     fs.writeFileSync(tasksFile(), JSON.stringify(tasks, null, 2))
   } catch (err) {
     log.error('tasks.json save failed:', err)
-  }
-}
-
-function saveRecords(): void {
-  try {
-    fs.mkdirSync(path.dirname(recordsFile()), { recursive: true })
-    fs.writeFileSync(recordsFile(), JSON.stringify(records, null, 2))
-  } catch (err) {
-    log.error('records.json save failed:', err)
   }
 }
 
@@ -94,8 +79,7 @@ function snapshot(): Task[] {
   return tasks.map((t) => {
     const target = taskTargetTime(t)
     if (target !== null) {
-      const rem =
-        t.status === 'finished' ? 0 : Math.max(0, target - now)
+      const rem = t.status === 'finished' ? 0 : Math.max(0, target - now)
       return { ...t, remainingMs: rem }
     }
     if (t.status === 'running' && t.endTime !== null) {
@@ -127,28 +111,42 @@ function tick(): void {
 }
 
 function onTaskFinished(t: Task): void {
-  const rec: FinishRecord = {
-    id: crypto.randomUUID(),
-    taskId: t.id,
-    title: t.title,
-    type: t.type,
-    durationSec: Math.round(t.durationMs / 1000),
-    finishedAt: Date.now()
-  }
-  records.unshift(rec)
-  if (records.length > 500) records = records.slice(0, 500)
-  saveRecords()
-
   const cfg = configStore.get()
   if (cfg.notificationEnabled) {
     notify('桌面倒计时', t.title === '倒计时' ? '倒计时结束！' : `${t.title}时间到！`)
   }
-  // 提醒时间到时自动弹出主窗口，确保用户看到提醒
-  showMainWindow()
+  // 提醒时以最高优先级把主页弹到桌面最前端
+  showMainWindowToFront()
   for (const w of BrowserWindow.getAllWindows()) {
     if (!w.isDestroyed()) w.webContents.send('task:finished', t.id)
   }
-  scheduleAutoPush()
+  scheduleAutoHide(t.id)
+}
+
+/** 完成 30 秒后任务自动消失（若期间被重新武装则取消） */
+function scheduleAutoHide(id: string): void {
+  const old = hideTimers.get(id)
+  if (old) clearTimeout(old)
+  hideTimers.set(
+    id,
+    setTimeout(() => {
+      hideTimers.delete(id)
+      const t = tasks.find((x) => x.id === id)
+      if (t && t.status === 'finished') {
+        tasks = tasks.filter((x) => x.id !== id)
+        saveTasks()
+        broadcast()
+      }
+    }, AUTO_HIDE_MS)
+  )
+}
+
+function cancelAutoHide(id: string): void {
+  const old = hideTimers.get(id)
+  if (old) {
+    clearTimeout(old)
+    hideTimers.delete(id)
+  }
 }
 
 // ---------- 对外操作 ----------
@@ -223,6 +221,7 @@ export function pauseTask(id: string): void {
 export function resetTask(id: string): void {
   const t = tasks.find((x) => x.id === id)
   if (!t) return
+  cancelAutoHide(id)
   if (t.type === 'datetime') {
     // 重新武装定点倒计时；目标已过则保持完成状态
     const target = taskTargetTime(t)
@@ -245,6 +244,7 @@ export function resetTask(id: string): void {
 }
 
 export function deleteTask(id: string): void {
+  cancelAutoHide(id)
   tasks = tasks.filter((t) => t.id !== id)
   saveTasks()
   broadcast()
@@ -270,7 +270,6 @@ export function reorderTasks(ids: string[]): void {
       map.delete(id)
     }
   }
-  // 未包含在 ids 中的新任务保持原有相对顺序，追加到末尾
   for (const t of tasks) {
     if (map.has(t.id)) next.push(t)
   }
@@ -287,29 +286,6 @@ export function toggleAll(): void {
     const next = tasks.find((t) => t.status === 'paused') ?? tasks.find((t) => t.status === 'idle')
     if (next) startTask(next.id)
   }
-}
-
-/** 清空已完成的任务与完成记录（主页计数从零重新开始） */
-export function clearFinished(): void {
-  tasks = tasks.filter((t) => t.status !== 'finished')
-  records = []
-  saveTasks()
-  saveRecords()
-  broadcast()
-}
-
-export function getRecords(): FinishRecord[] {
-  return records
-}
-
-export function deleteRecord(id: string): void {
-  records = records.filter((r) => r.id !== id)
-  saveRecords()
-  scheduleAutoPush()
-}
-
-export function getRecordsJson(): string {
-  return JSON.stringify(records, null, 2)
 }
 
 export function startTicking(): void {

@@ -15,8 +15,6 @@ export const useSettingsStore = defineStore('settings', () => {
   const theme = ref<'light' | 'dark' | 'system'>('system')
   const autoLaunch = ref(false)
   const closeToTray = ref(true)
-  const autoPushEnabled = ref(false)
-  const autoPushRepoPath = ref('')
 
   async function load(): Promise<void> {
     const cfg = await window.desktopAPI.getConfig()
@@ -37,8 +35,6 @@ export const useSettingsStore = defineStore('settings', () => {
     if (cfg.theme !== undefined) theme.value = cfg.theme
     if (cfg.autoLaunch !== undefined) autoLaunch.value = cfg.autoLaunch
     if (cfg.closeToTray !== undefined) closeToTray.value = cfg.closeToTray
-    if (cfg.autoPushEnabled !== undefined) autoPushEnabled.value = cfg.autoPushEnabled
-    if (cfg.autoPushRepoPath !== undefined) autoPushRepoPath.value = cfg.autoPushRepoPath
   }
 
   function patch(partial: Partial<Settings>): void {
@@ -59,8 +55,6 @@ export const useSettingsStore = defineStore('settings', () => {
     theme,
     autoLaunch,
     closeToTray,
-    autoPushEnabled,
-    autoPushRepoPath,
     load,
     patch
   }

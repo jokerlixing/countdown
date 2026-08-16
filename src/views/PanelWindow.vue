@@ -92,6 +92,8 @@ function onDrop(targetId: string): void {
           class="item"
           :class="{ running: t.status === 'running', dragging: dragId === t.id, 'drag-over': overId === t.id && dragId !== t.id }"
           draggable="true"
+          title="点击跳转主界面（可拖拽排序）"
+          @click="api.show()"
           @dragstart="dragId = t.id"
           @dragend="dragId = null; overId = null"
           @dragover.prevent="overId = t.id"
@@ -236,10 +238,10 @@ function onDrop(targetId: string): void {
   padding: 2px 6px;
   border-radius: 8px;
   transition: background 0.15s ease;
-  cursor: grab;
+  cursor: pointer;
 }
 .item:active {
-  cursor: grabbing;
+  cursor: pointer;
 }
 .item.dragging {
   opacity: 0.4;

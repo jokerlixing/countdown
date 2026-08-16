@@ -82,6 +82,22 @@ export function showMainWindow(): void {
   win.focus()
 }
 
+/** 提醒时以最高优先级把主页弹到桌面最前端：临时强制置顶 → 前台 → 恢复原置顶状态 */
+export function showMainWindowToFront(): void {
+  const win = getMainWindow()
+  if (!win) return
+  const cfg = configStore.get()
+  win.setAlwaysOnTop(true, 'screen-saver')
+  win.show()
+  win.focus()
+  win.flashFrame?.(false)
+  setTimeout(() => {
+    if (!win.isDestroyed()) {
+      win.setAlwaysOnTop(cfg.alwaysOnTop, 'screen-saver')
+    }
+  }, 2500)
+}
+
 export function createMainWindow(): BrowserWindow {
   const existing = getMainWindow()
   if (existing) {
@@ -134,8 +150,7 @@ function attachSmokeTest(win: BrowserWindow): void {
             await window.desktopAPI.startTask(t.id)
             await new Promise(r => setTimeout(r, 5000))
             const tasks = await window.desktopAPI.getTasks()
-            const records = await window.desktopAPI.getRecords()
-            return JSON.stringify({ status: tasks.find(x => x.id === t.id)?.status, records: records.length })
+            return JSON.stringify({ status: tasks.find(x => x.id === t.id)?.status })
           })()`
           const result = await win.webContents.executeJavaScript(js)
           console.log(`SMOKE_E2E:${result}`)

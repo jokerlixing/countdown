@@ -15,15 +15,6 @@ export interface Task {
   status: TaskStatus
 }
 
-export interface FinishRecord {
-  id: string
-  taskId: string
-  title: string
-  type: TaskType
-  durationSec: number
-  finishedAt: number
-}
-
 export interface WindowBounds {
   x: number
   y: number
@@ -48,6 +39,4 @@ export interface AppConfig {
   miniMode: boolean
   closeToTray: boolean
   uiMode: 'full' | 'float' | 'mini'
-  autoPushEnabled: boolean
-  autoPushRepoPath: string
 }

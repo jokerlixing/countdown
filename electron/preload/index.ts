@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { AppConfig, Task, TaskType, FinishRecord } from '../../shared/types'
+import type { AppConfig, Task, TaskType } from '../../shared/types'
 
 const desktopAPI = {
   // 平台信息（macOS 标题栏适配等）
@@ -30,7 +30,6 @@ const desktopAPI = {
   renameTask: (id: string, title: string): Promise<void> =>
     ipcRenderer.invoke('tasks:rename', id, title),
   reorderTasks: (ids: string[]): Promise<void> => ipcRenderer.invoke('tasks:reorder', ids),
-  clearFinishedTasks: (): Promise<void> => ipcRenderer.invoke('tasks:clear-finished'),
   onTasksUpdated: (cb: (tasks: Task[]) => void): (() => void) => {
     const listener = (_e: unknown, tasks: Task[]): void => cb(tasks)
     ipcRenderer.on('tasks:updated', listener)
@@ -41,10 +40,6 @@ const desktopAPI = {
     ipcRenderer.on('task:finished', listener)
     return () => ipcRenderer.removeListener('task:finished', listener)
   },
-
-  // 记录
-  getRecords: (): Promise<FinishRecord[]> => ipcRenderer.invoke('records:get'),
-  deleteRecord: (id: string): Promise<void> => ipcRenderer.invoke('records:delete', id),
 
   // 窗口
   openTaskWindow: (taskId: string, mode: 'float' | 'mini' | 'screen'): Promise<void> =>

@@ -2,7 +2,6 @@ export type {
   Task,
   TaskType,
   TaskStatus,
-  FinishRecord,
   WindowBounds,
   ThemeMode,
   AppConfig

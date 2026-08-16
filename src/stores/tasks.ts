@@ -1,21 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Task, TaskType, FinishRecord } from '@/types'
+import type { Task, TaskType } from '@/types'
 
 export const useTasksStore = defineStore('tasks', () => {
   const tasks = ref<Task[]>([])
-  const records = ref<FinishRecord[]>([])
   const loaded = ref(false)
 
   const runningCount = computed(() => tasks.value.filter((t) => t.status === 'running').length)
-  const durationTasks = computed(() => tasks.value.filter((t) => t.type === 'duration'))
-  const dateTasks = computed(() => tasks.value.filter((t) => t.type === 'date'))
 
   const api = window.desktopAPI
 
   async function init(): Promise<void> {
     tasks.value = await api.getTasks()
-    records.value = await api.getRecords()
     loaded.value = true
     api.onTasksUpdated((list: Task[]) => (tasks.value = list))
   }
@@ -51,30 +47,14 @@ export const useTasksStore = defineStore('tasks', () => {
     await api.reorderTasks(ids)
   }
 
-  async function clearFinished(): Promise<void> {
-    await api.clearFinishedTasks()
-    await loadRecords()
-  }
-
-  async function loadRecords(): Promise<void> {
-    records.value = await api.getRecords()
-  }
-  async function removeRecord(id: string): Promise<void> {
-    await api.deleteRecord(id)
-    await loadRecords()
-  }
-
   function getTask(id: string): Task | undefined {
     return tasks.value.find((t) => t.id === id)
   }
 
   return {
     tasks,
-    records,
     loaded,
     runningCount,
-    durationTasks,
-    dateTasks,
     init,
     createTask,
     start,
@@ -83,9 +63,6 @@ export const useTasksStore = defineStore('tasks', () => {
     remove,
     rename,
     reorder,
-    clearFinished,
-    loadRecords,
-    removeRecord,
     getTask
   }
 })
