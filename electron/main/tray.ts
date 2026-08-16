@@ -19,6 +19,8 @@ export function createTray(): void {
     tray = new Tray(image.isEmpty() ? nativeImage.createEmpty() : image.resize({ width: 16, height: 16 }))
     rebuildMenu()
     tray.setToolTip('桌面倒计时')
+    // 单击托盘即可显示主窗口，右键弹出菜单
+    tray.on('click', () => showMainWindow())
     tray.on('double-click', () => showMainWindow())
   } catch (err) {
     log.error('Tray creation failed:', err)

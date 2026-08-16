@@ -1,42 +1,50 @@
 :root {
-  --bg: #f3f5fa;
-  --bg-gradient: linear-gradient(160deg, #f6f8fd 0%, #eef1f9 100%);
+  /* 设计令牌（ui-ux-pro-max：效率工具 · Indigo 主色系） */
+  --bg: #f4f5fb;
+  --bg-gradient: linear-gradient(165deg, #f7f8fd 0%, #eef0f9 55%, #eceef8 100%);
   --card: #ffffff;
-  --card-soft: #f7f8fc;
-  --text: #1c1e26;
-  --text-secondary: #6d7380;
-  --text-faint: #9aa0ad;
-  --accent: #4f7cff;
-  --accent-2: #8a5cff;
-  --accent-gradient: linear-gradient(135deg, #4f7cff 0%, #8a5cff 100%);
-  --accent-soft: rgba(79, 124, 255, 0.1);
-  --border: #e6e8ef;
-  --danger: #e5484d;
-  --success: #30a46c;
-  --shadow-sm: 0 1px 3px rgba(23, 26, 43, 0.06);
-  --shadow: 0 4px 20px rgba(23, 26, 43, 0.08);
-  --shadow-lg: 0 12px 40px rgba(23, 26, 43, 0.16);
+  --card-soft: #f6f7fd;
+  --track: #eceef7;
+  --text: #181a24;
+  --text-secondary: #626878;
+  --text-faint: #9ba1b2;
+  --accent: #6366f1;
+  --accent-strong: #4f46e5;
+  --accent-2: #a78bfa;
+  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --accent-soft: rgba(99, 102, 241, 0.1);
+  --border: #e5e8f2;
+  --danger: #ef4444;
+  --success: #10b981;
+  --shadow-sm: 0 1px 3px rgba(24, 26, 40, 0.06);
+  --shadow: 0 4px 18px rgba(24, 26, 40, 0.08);
+  --shadow-lg: 0 12px 36px rgba(24, 26, 40, 0.16);
   --radius: 14px;
   --radius-sm: 10px;
+  --focus-ring: 0 0 0 3px rgba(99, 102, 241, 0.35);
 }
 
 html.dark {
-  --bg: #141519;
-  --bg-gradient: linear-gradient(160deg, #17181d 0%, #101116 100%);
-  --card: #1f2027;
-  --card-soft: #262831;
-  --text: #ecEEf3;
-  --text: #eceef3;
-  --text-secondary: #9aa0ad;
-  --text-faint: #6d7380;
-  --accent: #5c8bff;
-  --accent-2: #9a70ff;
-  --accent-gradient: linear-gradient(135deg, #5c8bff 0%, #9a70ff 100%);
-  --accent-soft: rgba(92, 139, 255, 0.14);
-  --border: #30323b;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --bg: #131419;
+  --bg-gradient: linear-gradient(165deg, #16171d 0%, #101116 60%, #0e0f13 100%);
+  --card: #1d1f27;
+  --card-soft: #252834;
+  --track: #2b2e3a;
+  --text: #edeef4;
+  --text-secondary: #9ba3b6;
+  --text-faint: #6b7186;
+  --accent: #818cf8;
+  --accent-strong: #a5b4fc;
+  --accent-2: #c4b5fd;
+  --accent-gradient: linear-gradient(135deg, #6d75f3 0%, #9a70ff 100%);
+  --accent-soft: rgba(129, 140, 248, 0.16);
+  --border: #2d3040;
+  --danger: #f87171;
+  --success: #34d399;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.32);
+  --shadow: 0 4px 18px rgba(0, 0, 0, 0.38);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.52);
+  --focus-ring: 0 0 0 3px rgba(129, 140, 248, 0.4);
 }
 
 * {
@@ -106,11 +114,11 @@ button {
 .btn-primary {
   background: var(--accent-gradient);
   color: #fff;
-  box-shadow: 0 3px 12px rgba(79, 124, 255, 0.35);
+  box-shadow: 0 3px 12px rgba(99, 102, 241, 0.35);
 }
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 5px 18px rgba(79, 124, 255, 0.45);
+  box-shadow: 0 5px 16px rgba(99, 102, 241, 0.45);
 }
 .btn-primary:active {
   transform: translateY(0);
@@ -175,6 +183,14 @@ input[type='date'] {
 }
 html.dark input[type='date'] {
   color-scheme: dark;
+}
+
+/* 键盘可达性：统一焦点环（ui-ux-pro-max WCAG AA 要求） */
+button:focus-visible,
+input:focus-visible,
+.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .section-label {

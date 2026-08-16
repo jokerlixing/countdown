@@ -121,16 +121,31 @@ function makeIco(png) {
 // ---------- WAV 编码 ----------
 function makeWav() {
   const rate = 44100
-  const seconds = 1.2
+  const seconds = 30 // 提示时长 30 秒：每 5 秒一轮三连音，尾轮以和弦长音收尾
   const n = Math.floor(rate * seconds)
   const data = Buffer.alloc(n * 2)
+  const notes = [880, 1108.73, 1318.51] // A5 C#6 E6
+  const rounds = Math.floor(seconds / 5)
   for (let i = 0; i < n; i++) {
     const t = i / rate
-    const seg = Math.min(2, Math.floor(t / 0.18)) // 快速三连音
-    const freq = [880, 1108.73, 1318.51][seg] // A5 C#6 E6
-    const dur = t - seg * 0.18
-    const env = Math.min(1, dur * 60) * Math.exp(-dur * 5)
-    const s = Math.sin(2 * Math.PI * freq * t) * env * 0.55
+    const round = Math.floor(t / 5)
+    const rt = t - round * 5 // 本轮内时间
+    const isLast = round === rounds - 1
+    let s = 0
+    if (isLast && rt >= 2.5) {
+      // 尾轮和弦：三音叠加长余音
+      const cd = rt - 2.5
+      const chord =
+        Math.sin(2 * Math.PI * 880 * t) +
+        Math.sin(2 * Math.PI * 1108.73 * t) +
+        Math.sin(2 * Math.PI * 1318.51 * t)
+      s = (chord / 3) * Math.min(1, cd * 40) * Math.exp(-cd * 1.2) * 0.55
+    } else if (rt < 0.54) {
+      const seg = Math.min(2, Math.floor(rt / 0.18))
+      const dur = rt - seg * 0.18
+      const env = Math.min(1, dur * 60) * Math.exp(-dur * 5)
+      s = Math.sin(2 * Math.PI * notes[seg] * t) * env * 0.55
+    }
     data.writeInt16LE(Math.max(-32768, Math.min(32767, Math.round(s * 32767))), i * 2)
   }
   const header = Buffer.alloc(44)

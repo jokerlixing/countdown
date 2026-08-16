@@ -5,12 +5,14 @@ import { useSettingsStore } from '@/stores/settings'
 import { playFinish } from '@/services/sound'
 import Dashboard from '@/views/Dashboard.vue'
 import TaskWindow from '@/views/TaskWindow.vue'
+import ProgressWindow from '@/views/ProgressWindow.vue'
 
 const params = new URLSearchParams(window.location.search)
 const view = params.get('view') ?? 'dashboard'
 const taskId = params.get('id') ?? ''
 const modeParam = (params.get('mode') ?? 'float') as 'float' | 'mini' | 'screen'
 const isTaskWindow = view === 'task' && taskId !== ''
+const isProgressWindow = view === 'progress'
 
 const tasks = useTasksStore()
 const settings = useSettingsStore()
@@ -25,7 +27,7 @@ onMounted(async () => {
   await Promise.all([settings.load(), tasks.init()])
 
   // 提示音只在主窗口播放，避免多窗口重复响铃
-  if (!isTaskWindow) {
+  if (!isTaskWindow && !isProgressWindow) {
     window.desktopAPI.onTaskFinished(() => {
       if (settings.soundEnabled) playFinish(settings.volume)
     })
@@ -34,7 +36,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Dashboard v-if="!isTaskWindow" />
+  <ProgressWindow v-if="isProgressWindow" :mini="modeParam === 'mini'" />
+  <Dashboard v-else-if="!isTaskWindow" />
   <TaskWindow v-else :task-id="taskId" :mode="modeParam" />
 </template>
 

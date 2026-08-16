@@ -2,13 +2,15 @@ import { BrowserWindow, screen, app } from 'electron'
 import path from 'path'
 import { configStore } from './store'
 
-export type WindowMode = 'dashboard' | 'float' | 'mini' | 'screen'
+export type WindowMode = 'dashboard' | 'float' | 'mini' | 'screen' | 'progress-float' | 'progress-mini'
 
 export const WINDOW_SIZES: Record<WindowMode, { width: number; height: number }> = {
   dashboard: { width: 420, height: 660 },
   float: { width: 230, height: 118 },
   mini: { width: 168, height: 74 },
-  screen: { width: 800, height: 500 }
+  screen: { width: 800, height: 500 },
+  'progress-float': { width: 232, height: 172 },
+  'progress-mini': { width: 180, height: 64 }
 }
 
 const windows = new Map<string, BrowserWindow>()
@@ -179,6 +181,29 @@ export function openTaskWindow(taskId: string, mode: 'float' | 'mini' | 'screen'
 export function closeWindowByKey(key: string): void {
   const win = windows.get(key)
   if (win && !win.isDestroyed()) win.close()
+}
+
+/** 进度悬浮窗（年度/月度/今日），float 显示三项，mini 仅今日 */
+export function openProgressWindow(mode: 'float' | 'mini'): void {
+  const key = `progress-${mode}`
+  const existing = windows.get(key)
+  if (existing && !existing.isDestroyed()) {
+    existing.show()
+    existing.focus()
+    return
+  }
+  const size = WINDOW_SIZES[`progress-${mode}`]
+  const win = new BrowserWindow({
+    ...baseOptions(),
+    width: size.width,
+    height: size.height,
+    resizable: false,
+    alwaysOnTop: true,
+    skipTaskbar: true
+  })
+  windows.set(key, win)
+  win.on('closed', () => windows.delete(key))
+  loadRenderer(win, `?view=progress&mode=${mode}`)
 }
 
 export function closeCurrent(win: BrowserWindow): void {

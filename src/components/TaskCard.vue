@@ -107,7 +107,7 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
   transform: translateY(-1px);
 }
 .task.running {
-  border-color: rgba(79, 124, 255, 0.45);
+  border-color: rgba(99, 102, 241, 0.45);
 }
 .task.done {
   opacity: 0.75;

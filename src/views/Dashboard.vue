@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useTasksStore } from '@/stores/tasks'
 import { useShortcuts } from '@/composables/useShortcuts'
+import { onPlayStateChange, stopFinish } from '@/services/sound'
 import TitleBar from '@/components/TitleBar.vue'
 import NewTaskForm from '@/components/NewTaskForm.vue'
 import TaskCard from '@/components/TaskCard.vue'
@@ -13,6 +14,17 @@ const tasks = useTasksStore()
 
 const tab = ref<'tasks' | 'progress' | 'history'>('tasks')
 const showSettings = ref(false)
+const ringing = ref(false)
+const ringTitle = ref('')
+
+onMounted(() => {
+  // 铃声播放中显示可关闭的提醒横幅
+  window.desktopAPI.onTaskFinished((taskId: string) => {
+    const t = tasks.getTask(taskId)
+    if (t) ringTitle.value = t.title
+  })
+  onPlayStateChange((playing) => (ringing.value = playing))
+})
 
 const tabs = computed(() => [
   { key: 'tasks' as const, label: '倒计时', badge: tasks.runningCount },
@@ -81,6 +93,14 @@ useShortcuts({
     </div>
 
     <SettingsPanel v-model:show="showSettings" />
+
+    <Transition name="fade">
+      <div v-if="ringing" class="ring-banner">
+        <span class="ring-icon">🔔</span>
+        <span class="ring-text">「{{ ringTitle }}」时间到 · 铃声播放中</span>
+        <button class="ring-stop" @click="stopFinish()">⏹ 停止铃声</button>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -90,6 +110,7 @@ useShortcuts({
   display: flex;
   flex-direction: column;
   background: var(--bg-gradient);
+  position: relative;
 }
 .header {
   display: flex;
@@ -175,5 +196,50 @@ useShortcuts({
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.ring-banner {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px 9px 16px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--accent);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 20;
+  max-width: calc(100% - 28px);
+}
+.ring-icon {
+  animation: ring-shake 1s ease-in-out infinite;
+}
+@keyframes ring-shake {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(14deg); }
+  40% { transform: rotate(-12deg); }
+  60% { transform: rotate(8deg); }
+  80% { transform: rotate(-6deg); }
+}
+.ring-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ring-stop {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.ring-stop:hover {
+  filter: brightness(1.1);
 }
 </style>

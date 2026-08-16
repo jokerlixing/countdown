@@ -70,7 +70,7 @@ function toggleAutoLaunch(v: boolean): void {
           <div class="section-title">关于</div>
           <div class="about">
             <div class="name">桌面倒计时 · Desktop Countdown</div>
-            <div class="ver">版本 0.2.0 · Electron + Vue 3</div>
+            <div class="ver">版本 0.3.0 · Electron + Vue 3</div>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import {
   getMainWindow,
   showMainWindow,
   openTaskWindow,
+  openProgressWindow,
   closeCurrent,
   applyWindowSettings,
   setFullscreen,
@@ -45,6 +46,7 @@ export function registerIpc(): void {
   ipcMain.handle('window:open-task', (_e, taskId: string, mode: 'float' | 'mini' | 'screen') =>
     openTaskWindow(taskId, mode)
   )
+  ipcMain.handle('window:open-progress', (_e, mode: 'float' | 'mini') => openProgressWindow(mode))
   ipcMain.handle('window:close-current', (e) => closeCurrent(e.sender as unknown as BrowserWindow))
   ipcMain.handle('window:minimize', () => getMainWindow()?.minimize())
   ipcMain.handle('window:close', () => getMainWindow()?.close())
