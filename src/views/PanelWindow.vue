@@ -24,9 +24,9 @@ const month = computed<PeriodProgress>(() => monthProgress(now.value))
 const day = computed<PeriodProgress>(() => dayProgress(now.value))
 
 const progressRows = computed(() => [
-  { key: 'year', icon: '📅', label: '年度', p: year.value.percent, variant: 'indigo' as const },
-  { key: 'month', icon: '🌙', label: '月度', p: month.value.percent, variant: 'violet' as const },
-  { key: 'today', icon: '☀️', label: '今日', p: day.value.percent, variant: 'emerald' as const }
+  { key: 'year', icon: '📅', label: '年', p: year.value.percent, variant: 'indigo' as const },
+  { key: 'month', icon: '🌙', label: '月', p: month.value.percent, variant: 'violet' as const },
+  { key: 'today', icon: '☀️', label: '日', p: day.value.percent, variant: 'emerald' as const }
 ])
 
 const list = computed(() => tasks.tasks.filter((t) => t.status !== 'finished' || t.type === 'date'))
@@ -38,15 +38,15 @@ function timeOf(t: { type: string; remainingMs: number }): string {
 
 <template>
   <div class="panel">
+    <div class="accent-strip" />
     <div class="head">
       <span class="h-icon">🧩</span>
       <span class="h-label">整合面板</span>
-      <span v-if="tasks.runningCount" class="h-badge num">{{ tasks.runningCount }} 进行中</span>
+      <span v-if="tasks.runningCount" class="h-badge num">{{ tasks.runningCount }}↻</span>
       <button class="close" title="关闭" @click="api.closeCurrentWindow()">✕</button>
     </div>
 
-    <div class="section">
-      <div class="sec-title">进度</div>
+    <div class="progress">
       <div v-for="r in progressRows" :key="r.key" class="p-row">
         <span class="p-icon">{{ r.icon }}</span>
         <span class="p-label">{{ r.label }}</span>
@@ -57,10 +57,10 @@ function timeOf(t: { type: string; remainingMs: number }): string {
       </div>
     </div>
 
-    <div class="section grow">
-      <div class="sec-title">任务<span v-if="list.length" class="sec-count num">{{ list.length }}</span></div>
-      <div v-if="list.length === 0" class="empty">暂无提醒任务</div>
-      <div v-else class="list">
+    <div class="tasks">
+      <div v-if="list.length === 0" class="empty">🎉 全部完成</div>
+      <template v-else>
+        <!-- 少量任务时每行自动拉伸填满面板；多任务时紧凑排列并滚动 -->
         <div v-for="t in list" :key="t.id" class="item" :class="{ running: t.status === 'running' }">
           <span class="i-icon">{{ t.type === 'date' ? '🗓' : '⏱' }}</span>
           <div class="mid">
@@ -71,7 +71,7 @@ function timeOf(t: { type: string; remainingMs: number }): string {
             {{ t.status === 'finished' && t.type === 'duration' ? '✓' : timeOf(t) }}
           </div>
         </div>
-      </div>
+      </template>
     </div>
   </div>
 </template>
@@ -81,152 +81,153 @@ function timeOf(t: { type: string; remainingMs: number }): string {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--card);
+  background: linear-gradient(180deg, var(--card) 0%, var(--card-soft) 100%);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  position: relative;
+}
+.accent-strip {
+  height: 2.5px;
+  background: var(--accent-gradient);
+  flex-shrink: 0;
+  opacity: 0.9;
 }
 .head {
   -webkit-app-region: drag;
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--card-soft);
+  gap: 5px;
+  padding: 4px 6px 4px 9px;
   flex-shrink: 0;
 }
 .h-icon {
-  font-size: 14px;
+  font-size: 12px;
 }
 .h-label {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 800;
+  letter-spacing: 0.5px;
 }
 .h-badge {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 800;
   background: var(--accent-gradient);
   color: #fff;
-  padding: 2px 8px;
+  padding: 1px 6px;
   border-radius: 999px;
+  animation: soft-pulse 2s ease-in-out infinite;
 }
 .close {
   -webkit-app-region: no-drag;
   margin-left: auto;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 9.5px;
   color: var(--text-faint);
 }
 .close:hover {
   background: var(--danger);
   color: #fff;
 }
-.section {
-  padding: 7px 10px 6px;
-  flex-shrink: 0;
-}
-.section.grow {
-  flex: 1;
-  min-height: 0;
+
+/* 进度：三行紧凑排布 */
+.progress {
+  padding: 2px 9px 6px;
   display: flex;
   flex-direction: column;
-}
-.sec-title {
-  font-size: 10.5px;
-  font-weight: 800;
-  color: var(--text-faint);
-  letter-spacing: 1.5px;
-  margin-bottom: 5px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.sec-count {
-  background: var(--accent-soft);
-  color: var(--accent);
-  padding: 0 6px;
-  border-radius: 999px;
-  font-size: 9.5px;
+  gap: 3px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 .p-row {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 2.5px 0;
+  gap: 5px;
 }
 .p-icon {
-  font-size: 13px;
+  font-size: 11px;
 }
 .p-label {
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   color: var(--text-secondary);
-  width: 26px;
+  width: 13px;
 }
 .p-bar {
   flex: 1;
 }
 .p-pct {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   color: var(--accent);
-  width: 44px;
+  width: 42px;
   text-align: right;
+}
+
+/* 任务：自动填充剩余空间 */
+.tasks {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  gap: 3px;
+  overflow-y: auto;
 }
 .empty {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--text-faint);
 }
-.list {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
 .item {
+  flex: 1 1 auto;
+  min-height: 24px;
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 7px;
+  gap: 6px;
+  padding: 2px 6px;
   border-radius: 8px;
   transition: background 0.15s ease;
 }
 .item.running {
   background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 .i-icon {
-  font-size: 13px;
+  font-size: 12px;
 }
 .mid {
   flex: 1;
   min-width: 0;
 }
 .name {
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .sub {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-faint);
 }
 .time {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   flex-shrink: 0;
 }
 .danger {
   color: var(--danger);
+}
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
 }
 </style>

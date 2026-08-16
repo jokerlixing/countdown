@@ -51,6 +51,7 @@ const api = window.desktopAPI
 
 <template>
   <div class="pwin" :class="{ single: props.kind !== 'all' }">
+    <div class="accent-strip" />
     <button class="close" title="关闭" @click="api.closeCurrentWindow()">✕</button>
 
     <template v-if="props.kind === 'all'">
@@ -89,11 +90,21 @@ const api = window.desktopAPI
   justify-content: center;
   gap: 9px;
   padding: 10px 14px;
-  background: var(--card);
+  background: linear-gradient(180deg, var(--card) 0%, var(--card-soft) 100%);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
   position: relative;
+  overflow: hidden;
+}
+.accent-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: var(--accent-gradient);
+  opacity: 0.9;
 }
 .row {
   display: flex;
@@ -147,6 +158,13 @@ const api = window.desktopAPI
 }
 .s-icon {
   font-size: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent-soft);
 }
 .s-label {
   font-size: 13.5px;

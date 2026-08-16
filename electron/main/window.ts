@@ -24,7 +24,7 @@ export const WINDOW_SIZES: Record<WindowMode, { width: number; height: number }>
   'progress-month': { width: 208, height: 132 },
   'progress-today': { width: 208, height: 132 },
   'tasks-all': { width: 250, height: 280 },
-  panel: { width: 252, height: 388 }
+  panel: { width: 204, height: 204 }
 }
 
 const windows = new Map<string, BrowserWindow>()
@@ -244,7 +244,7 @@ export function openTasksWindow(): void {
   loadRenderer(win, '?view=tasks')
 }
 
-/** 整合面板：全部任务 + 年/月/日进度合并到一个小的长方形悬浮窗 */
+/** 整合面板：全部任务 + 年/月/日进度合并到一个正方形小悬浮窗 */
 export function openPanelWindow(): void {
   const key = 'panel'
   const existing = windows.get(key)
@@ -258,8 +258,8 @@ export function openPanelWindow(): void {
     ...baseOptions(),
     width: size.width,
     height: size.height,
-    minWidth: 220,
-    minHeight: 220,
+    minWidth: 176,
+    minHeight: 176,
     resizable: true,
     alwaysOnTop: true,
     skipTaskbar: true

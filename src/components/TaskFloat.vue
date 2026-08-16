@@ -46,6 +46,7 @@ function leave(): void {
 
 <template>
   <div class="float" :class="{ mini }" @mouseenter="enter" @mouseleave="leave">
+    <div class="accent-strip" />
     <div class="top">
       <span class="label">
         <span class="t-icon">{{ task.type === 'date' ? '🗓' : '⏱' }}</span>
@@ -78,10 +79,21 @@ function leave(): void {
   justify-content: center;
   gap: 5px;
   padding: 8px 12px;
-  background: var(--card);
+  background: linear-gradient(180deg, var(--card) 0%, var(--card-soft) 100%);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+.accent-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: var(--accent-gradient);
+  opacity: 0.9;
 }
 .top {
   display: flex;
