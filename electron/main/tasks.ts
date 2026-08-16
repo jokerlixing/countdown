@@ -38,8 +38,11 @@ export function loadTasks(): void {
   // 启动时校正：已过期的运行中任务标记为结束（不补记录）
   const now = Date.now()
   for (const t of tasks) {
+    if (t.type === 'datetime') {
+      if (t.targetTime === undefined || t.targetTime === null) t.targetTime = null
+    }
     if (t.status === 'running') {
-      if (t.type === 'duration' && t.endTime !== null && t.endTime <= now) {
+      if ((t.type === 'duration' || t.type === 'datetime') && t.endTime !== null && t.endTime <= now) {
         t.status = 'finished'
         t.remainingMs = 0
         t.endTime = null
@@ -75,13 +78,25 @@ function broadcast(): void {
   }
 }
 
+function taskTargetTime(t: Task): number | null {
+  if (!t.targetDate) return null
+  if (t.type === 'datetime') {
+    if (!t.targetTime) return null
+    return new Date(`${t.targetDate}T${t.targetTime}`).getTime()
+  }
+  if (t.type === 'date') return new Date(`${t.targetDate}T23:59:59`).getTime()
+  return null
+}
+
 /** 带实时剩余时间的快照（不落盘） */
 function snapshot(): Task[] {
   const now = Date.now()
   return tasks.map((t) => {
-    if (t.type === 'date' && t.targetDate) {
-      const target = new Date(`${t.targetDate}T23:59:59`).getTime()
-      return { ...t, remainingMs: Math.max(0, target - now) }
+    const target = taskTargetTime(t)
+    if (target !== null) {
+      const rem =
+        t.status === 'finished' ? 0 : Math.max(0, target - now)
+      return { ...t, remainingMs: rem }
     }
     if (t.status === 'running' && t.endTime !== null) {
       return { ...t, remainingMs: Math.max(0, t.endTime - now) }
@@ -94,7 +109,12 @@ function tick(): void {
   const now = Date.now()
   let changed = false
   for (const t of tasks) {
-    if (t.status === 'running' && t.type === 'duration' && t.endTime !== null && t.endTime <= now) {
+    if (
+      t.status === 'running' &&
+      (t.type === 'duration' || t.type === 'datetime') &&
+      t.endTime !== null &&
+      t.endTime <= now
+    ) {
       t.remainingMs = 0
       t.endTime = null
       t.status = 'finished'
@@ -141,17 +161,36 @@ export function createTask(input: {
   type: TaskType
   durationMs?: number
   targetDate?: string | null
+  targetTime?: string | null
 }): Task {
+  const now = Date.now()
+  const isDatetime = input.type === 'datetime'
+  const target =
+    isDatetime && input.targetDate && input.targetTime
+      ? new Date(`${input.targetDate}T${input.targetTime}`).getTime()
+      : null
   const t: Task = {
     id: crypto.randomUUID(),
     title: input.title.trim() || '倒计时',
     type: input.type,
-    durationMs: input.type === 'duration' ? Math.max(1000, input.durationMs ?? 25 * 60 * 1000) : 0,
-    targetDate: input.type === 'date' ? (input.targetDate ?? null) : null,
-    createdAt: Date.now(),
-    endTime: null,
-    remainingMs: input.type === 'duration' ? Math.max(1000, input.durationMs ?? 25 * 60 * 1000) : 0,
-    status: 'idle'
+    durationMs:
+      input.type === 'duration'
+        ? Math.max(1000, input.durationMs ?? 25 * 60 * 1000)
+        : target !== null
+          ? Math.max(1, target - now)
+          : 0,
+    targetDate: input.type === 'date' || isDatetime ? (input.targetDate ?? null) : null,
+    targetTime: isDatetime ? (input.targetTime ?? null) : null,
+    createdAt: now,
+    endTime: isDatetime ? target : null,
+    remainingMs:
+      input.type === 'duration'
+        ? Math.max(1000, input.durationMs ?? 25 * 60 * 1000)
+        : target !== null
+          ? Math.max(0, target - now)
+          : 0,
+    // 定点倒计时创建即自动运行，到点触发提醒
+    status: isDatetime ? 'running' : 'idle'
   }
   tasks.unshift(t)
   saveTasks()
@@ -161,7 +200,7 @@ export function createTask(input: {
 
 export function startTask(id: string): void {
   const t = tasks.find((x) => x.id === id)
-  if (!t || t.type === 'date') return
+  if (!t || t.type === 'date' || t.type === 'datetime') return
   if (t.status === 'running') return
   if (t.status !== 'paused') t.remainingMs = t.durationMs
   if (t.remainingMs <= 0) return
@@ -184,9 +223,23 @@ export function pauseTask(id: string): void {
 export function resetTask(id: string): void {
   const t = tasks.find((x) => x.id === id)
   if (!t) return
-  t.remainingMs = t.durationMs
-  t.endTime = null
-  t.status = 'idle'
+  if (t.type === 'datetime') {
+    // 重新武装定点倒计时；目标已过则保持完成状态
+    const target = taskTargetTime(t)
+    if (target !== null && target > Date.now()) {
+      t.endTime = target
+      t.remainingMs = target - Date.now()
+      t.status = 'running'
+    } else {
+      t.endTime = null
+      t.remainingMs = 0
+      t.status = 'finished'
+    }
+  } else {
+    t.remainingMs = t.durationMs
+    t.endTime = null
+    t.status = 'idle'
+  }
   saveTasks()
   broadcast()
 }

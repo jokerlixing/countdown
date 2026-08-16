@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { Task } from '@/types'
 import { formatMs } from '@/utils/time'
-import { daysText, dateTaskProgress } from '@/utils/date'
+import { dateParts } from '@/utils/date'
 import { taskColor } from '@/utils/color'
 import ProgressBar from './ProgressBar.vue'
 
@@ -10,14 +10,21 @@ const props = defineProps<{ task: Task }>()
 const api = window.desktopAPI
 
 const timeText = computed(() =>
-  props.task.type === 'date' ? daysText(props.task.remainingMs) : formatMs(props.task.remainingMs)
+  props.task.type === 'duration' ? formatMs(props.task.remainingMs) : `${dateParts(props.task.remainingMs).days} 天`
+)
+const subTime = computed(() =>
+  props.task.type === 'duration' ? '' : dateParts(props.task.remainingMs).hms
+)
+const typeIcon = computed(() =>
+  props.task.type === 'datetime' ? '⏰' : props.task.type === 'date' ? '🗓' : '⏱'
 )
 
 const percent = computed(() => {
-  if (props.task.type === 'date' && props.task.targetDate) {
-    return dateTaskProgress(props.task.createdAt, props.task.targetDate)
+  if (props.task.type === 'duration') {
+    return props.task.durationMs > 0 ? props.task.remainingMs / props.task.durationMs : 0
   }
-  return props.task.durationMs > 0 ? props.task.remainingMs / props.task.durationMs : 0
+  const total = props.task.remainingMs + (Date.now() - props.task.createdAt)
+  return total > 0 ? Math.min(1, (Date.now() - props.task.createdAt) / total) : 1
 })
 
 function exit(): void {
@@ -30,10 +37,11 @@ function exit(): void {
   <div class="screen">
     <button class="exit" title="退出全屏 (Esc)" @click="exit">✕ 退出全屏</button>
     <div class="title">
-      <span class="t-icon">{{ task.type === 'date' ? '🗓' : '⏱' }}</span>
+      <span class="t-icon">{{ typeIcon }}</span>
       <span class="t-name" :style="{ color: taskColor(task.id) }">{{ task.title }}</span>
     </div>
-    <div class="time num">{{ task.status === 'finished' && task.type === 'duration' ? '00:00:00' : timeText }}</div>
+    <div class="time num">{{ timeText }}</div>
+    <div v-if="subTime" class="sub-time num">{{ subTime }}</div>
     <div class="progress">
       <ProgressBar :percent="percent" />
       <span class="pct num">{{ Math.round(percent * 100) }}%</span>
@@ -100,6 +108,13 @@ function exit(): void {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+.sub-time {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 3px;
+  margin-top: -14px;
 }
 .progress {
   width: min(480px, 60vw);

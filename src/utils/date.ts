@@ -49,12 +49,23 @@ export function dateParts(ms: number): { days: number; hms: string } {
   return { days, hms: `${pad(h)}:${pad(m)}:${pad(s)}` }
 }
 
-/** 日期倒计时进度：从创建日到目标日的已过比例 */
-export function dateTaskProgress(createdAt: number, targetDate: string, now = Date.now()): number {
-  const target = new Date(`${targetDate}T23:59:59`).getTime()
+/** 日期倒计时进度：从创建日到目标日(或指定时刻)的已过比例 */
+export function dateTaskProgress(
+  createdAt: number,
+  targetDate: string,
+  now = Date.now(),
+  targetTime?: string | null
+): number {
+  const target = new Date(targetTime ? `${targetDate}T${targetTime}` : `${targetDate}T23:59:59`).getTime()
   const total = target - createdAt
   if (total <= 0) return 1
   return clamp01((now - createdAt) / total)
+}
+
+/** 目标时刻显示文本：MM-DD 或 MM-DD HH:mm */
+export function targetText(targetDate: string, targetTime?: string | null): string {
+  const [, m, d] = targetDate.split('-')
+  return targetTime ? `${m}-${d} ${targetTime}` : `${m}-${d}`
 }
 
 export function formatCNDate(d = new Date()): string {

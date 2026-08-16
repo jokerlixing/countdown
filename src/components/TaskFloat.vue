@@ -49,7 +49,7 @@ function leave(): void {
     <div class="accent-strip" />
     <div class="top">
       <span class="label">
-        <span class="t-icon">{{ task.type === 'date' ? '🗓' : '⏱' }}</span>
+        <span class="t-icon">{{ task.type === 'datetime' ? '⏰' : task.type === 'date' ? '🗓' : '⏱' }}</span>
         <span class="t-name" :style="{ color: taskColor(task.id) }">{{
           task.status === 'finished' && task.type === 'duration' ? '完成!' : task.title
         }}</span>
@@ -65,7 +65,7 @@ function leave(): void {
       </Transition>
     </div>
     <div class="time num" :class="{ danger }">{{ timeText }}</div>
-    <div v-if="task.type === 'date'" class="date-hms num">{{ parts.hms }}</div>
+    <div v-if="task.type !== 'duration'" class="date-hms num">{{ parts.hms }}</div>
     <ProgressBar v-if="!mini" :percent="percent" thin />
   </div>
 </template>

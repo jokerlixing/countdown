@@ -32,8 +32,8 @@ const tabs = computed(() => [
   { key: 'history' as const, label: '记录', badge: tasks.records.length }
 ])
 
-const activeTasks = computed(() => tasks.tasks.filter((t) => t.status !== 'finished' || t.type === 'date'))
-const finishedToday = computed(() => tasks.tasks.filter((t) => t.status === 'finished' && t.type === 'duration'))
+const activeTasks = computed(() => tasks.tasks.filter((t) => t.status !== 'finished' || t.type !== 'duration'))
+const finishedToday = computed(() => tasks.tasks.filter((t) => t.status === 'finished' && t.type !== 'date'))
 
 useShortcuts({
   onSpace: () => {

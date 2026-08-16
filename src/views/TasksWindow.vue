@@ -8,10 +8,10 @@ import { taskColor } from '@/utils/color'
 const tasks = useTasksStore()
 const api = window.desktopAPI
 
-const list = computed(() => tasks.tasks.filter((t) => t.status !== 'finished' || t.type === 'date'))
+const list = computed(() => tasks.tasks.filter((t) => t.status !== 'finished' || t.type !== 'duration'))
 
 function timeOf(t: { type: string; remainingMs: number }): string {
-  return t.type === 'date' ? `${dateParts(t.remainingMs).days}天` : formatMsShort(t.remainingMs)
+  return t.type === 'duration' ? formatMsShort(t.remainingMs) : `${dateParts(t.remainingMs).days}天`
 }
 </script>
 
@@ -27,10 +27,10 @@ function timeOf(t: { type: string; remainingMs: number }): string {
     <div v-if="list.length === 0" class="empty">暂无提醒任务</div>
     <div v-else class="list">
       <div v-for="t in list" :key="t.id" class="item" :class="{ running: t.status === 'running' }">
-        <span class="i-icon">{{ t.type === 'date' ? '🗓' : '⏱' }}</span>
+        <span class="i-icon">{{ t.type === 'datetime' ? '⏰' : t.type === 'date' ? '🗓' : '⏱' }}</span>
         <div class="mid">
           <div class="name" :style="{ color: taskColor(t.id) }" :title="t.title">{{ t.title }}</div>
-          <div v-if="t.type === 'date'" class="sub num">{{ dateParts(t.remainingMs).hms }}</div>
+          <div v-if="t.type !== 'duration'" class="sub num">{{ dateParts(t.remainingMs).hms }}</div>
         </div>
         <div class="time num" :class="{ danger: t.status === 'running' && t.remainingMs < 10_000 }">
           {{ t.status === 'finished' && t.type === 'duration' ? '✓' : timeOf(t) }}

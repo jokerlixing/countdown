@@ -31,8 +31,16 @@ export function registerIpc(): void {
   ipcMain.handle('tasks:get', () => getSnapshot())
   ipcMain.handle(
     'tasks:create',
-    (_e, input: { title: string; type: TaskType; durationMs?: number; targetDate?: string | null }) =>
-      createTask(input)
+    (
+      _e,
+      input: {
+        title: string
+        type: TaskType
+        durationMs?: number
+        targetDate?: string | null
+        targetTime?: string | null
+      }
+    ) => createTask(input)
   )
   ipcMain.handle('tasks:start', (_e, id: string) => startTask(id))
   ipcMain.handle('tasks:pause', (_e, id: string) => pauseTask(id))

@@ -25,6 +25,7 @@ export const useTasksStore = defineStore('tasks', () => {
     type: TaskType
     durationMs?: number
     targetDate?: string | null
+    targetTime?: string | null
   }): Promise<void> {
     await api.createTask(input)
   }

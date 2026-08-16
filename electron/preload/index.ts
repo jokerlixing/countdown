@@ -13,8 +13,13 @@ const desktopAPI = {
 
   // 任务
   getTasks: (): Promise<Task[]> => ipcRenderer.invoke('tasks:get'),
-  createTask: (input: { title: string; type: TaskType; durationMs?: number; targetDate?: string | null }): Promise<Task> =>
-    ipcRenderer.invoke('tasks:create', input),
+  createTask: (input: {
+    title: string
+    type: TaskType
+    durationMs?: number
+    targetDate?: string | null
+    targetTime?: string | null
+  }): Promise<Task> => ipcRenderer.invoke('tasks:create', input),
   startTask: (id: string): Promise<void> => ipcRenderer.invoke('tasks:start', id),
   pauseTask: (id: string): Promise<void> => ipcRenderer.invoke('tasks:pause', id),
   resetTask: (id: string): Promise<void> => ipcRenderer.invoke('tasks:reset', id),

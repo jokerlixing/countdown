@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useTasksStore } from '@/stores/tasks'
 import type { Task } from '@/types'
 import { pad2 } from '@/utils/time'
-import { dateTaskProgress, dateParts } from '@/utils/date'
+import { dateTaskProgress, dateParts, targetText } from '@/utils/date'
 import { taskColor } from '@/utils/color'
 import ProgressBar from './ProgressBar.vue'
 
@@ -11,11 +11,14 @@ const props = defineProps<{ task: Task }>()
 const tasks = useTasksStore()
 
 const isDate = computed(() => props.task.type === 'date')
+const isDatetime = computed(() => props.task.type === 'datetime')
+const isTargetType = computed(() => isDate.value || isDatetime.value)
 const parts = computed(() => dateParts(props.task.remainingMs))
+const typeIcon = computed(() => (isDatetime.value ? '⏰' : isDate.value ? '🗓' : '⏱'))
 
 const percent = computed(() => {
-  if (isDate.value && props.task.targetDate) {
-    return dateTaskProgress(props.task.createdAt, props.task.targetDate)
+  if (isTargetType.value && props.task.targetDate) {
+    return dateTaskProgress(props.task.createdAt, props.task.targetDate, Date.now(), props.task.targetTime)
   }
   if (props.task.durationMs <= 0) return 0
   return props.task.remainingMs / props.task.durationMs
@@ -23,14 +26,14 @@ const percent = computed(() => {
 
 const statusLabel = computed(() => {
   const s = props.task.status
-  if (s === 'running') return isDate.value ? '进行中' : '计时中'
+  if (s === 'running') return isDatetime.value ? '进行中' : isDate.value ? '进行中' : '计时中'
   if (s === 'paused') return '已暂停'
   if (s === 'finished') return '已完成'
   return '待开始'
 })
 
 const danger = computed(
-  () => props.task.status === 'running' && !isDate.value && props.task.remainingMs < 10_000
+  () => props.task.status === 'running' && props.task.type === 'duration' && props.task.remainingMs < 10_000
 )
 
 const hms = computed(() => {
@@ -56,7 +59,7 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
   <div class="task card" :class="{ running: task.status === 'running', done: task.status === 'finished' }">
     <div class="head">
       <div class="name-row">
-        <span class="type-icon">{{ isDate ? '🗓' : '⏱' }}</span>
+        <span class="type-icon">{{ typeIcon }}</span>
         <span class="name" :style="{ color: taskColor(task.id) }" :title="task.title">{{ task.title }}</span>
         <span class="tag" :class="task.status">{{ statusLabel }}</span>
       </div>
@@ -69,7 +72,7 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
     </div>
 
     <div class="time num" :class="{ danger }">
-      <template v-if="isDate">
+      <template v-if="isTargetType">
         <span class="date-days">{{ parts.days }}<small> 天</small></span>
         <span class="date-hms num">{{ parts.hms }}</span>
       </template>
@@ -82,14 +85,18 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
     </div>
 
     <div class="ops">
-      <template v-if="!isDate">
+      <template v-if="task.type === 'duration'">
         <button v-if="task.status !== 'running'" class="btn btn-primary op" @click="toggle">
           {{ task.status === 'paused' ? '▶ 继续' : '▶ 开始' }}
         </button>
         <button v-else class="btn btn-primary op" @click="toggle">⏸ 暂停</button>
         <button class="btn btn-ghost op" @click="tasks.reset(task.id)">↻ 重置</button>
       </template>
-      <span v-else class="date-target">目标：{{ task.targetDate }}</span>
+      <template v-else-if="isDatetime">
+        <button v-if="task.status === 'finished'" class="btn btn-ghost op" @click="tasks.reset(task.id)">↻ 重新武装</button>
+        <span class="date-target">⏰ 目标：{{ targetText(task.targetDate!, task.targetTime) }}</span>
+      </template>
+      <span v-else class="date-target">目标：{{ targetText(task.targetDate!, null) }}</span>
     </div>
   </div>
 </template>

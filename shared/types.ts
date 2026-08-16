@@ -1,4 +1,4 @@
-export type TaskType = 'duration' | 'date'
+export type TaskType = 'duration' | 'date' | 'datetime'
 export type TaskStatus = 'idle' | 'running' | 'paused' | 'finished'
 
 export interface Task {
@@ -7,6 +7,8 @@ export interface Task {
   type: TaskType
   durationMs: number
   targetDate: string | null
+  /** datetime 类型指定的目标时刻（HH:mm） */
+  targetTime: string | null
   createdAt: number
   endTime: number | null
   remainingMs: number
