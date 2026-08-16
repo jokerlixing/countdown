@@ -51,6 +51,11 @@ export const useTasksStore = defineStore('tasks', () => {
     await api.reorderTasks(ids)
   }
 
+  async function clearFinished(): Promise<void> {
+    await api.clearFinishedTasks()
+    await loadRecords()
+  }
+
   async function loadRecords(): Promise<void> {
     records.value = await api.getRecords()
   }
@@ -78,6 +83,7 @@ export const useTasksStore = defineStore('tasks', () => {
     remove,
     rename,
     reorder,
+    clearFinished,
     loadRecords,
     removeRecord,
     getTask

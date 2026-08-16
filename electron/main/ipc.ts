@@ -23,6 +23,7 @@ import {
   renameTask,
   reorderTasks,
   toggleAll,
+  clearFinished,
   getRecords,
   deleteRecord,
   type TaskType
@@ -51,6 +52,7 @@ export function registerIpc(): void {
   ipcMain.handle('tasks:rename', (_e, id: string, title: string) => renameTask(id, title))
   ipcMain.handle('tasks:reorder', (_e, ids: string[]) => reorderTasks(ids))
   ipcMain.handle('tasks:toggle-all', () => toggleAll())
+  ipcMain.handle('tasks:clear-finished', () => clearFinished())
 
   // ---- 记录 ----
   ipcMain.handle('records:get', () => getRecords())

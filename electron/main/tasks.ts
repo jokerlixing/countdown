@@ -289,6 +289,15 @@ export function toggleAll(): void {
   }
 }
 
+/** 清空已完成的任务与完成记录（主页计数从零重新开始） */
+export function clearFinished(): void {
+  tasks = tasks.filter((t) => t.status !== 'finished')
+  records = []
+  saveTasks()
+  saveRecords()
+  broadcast()
+}
+
 export function getRecords(): FinishRecord[] {
   return records
 }
