@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { Task } from '@/types'
 import { formatMs } from '@/utils/time'
 import { daysText, dateTaskProgress } from '@/utils/date'
+import { taskColor } from '@/utils/color'
 import ProgressBar from './ProgressBar.vue'
 
 const props = defineProps<{ task: Task }>()
@@ -28,7 +29,10 @@ function exit(): void {
 <template>
   <div class="screen">
     <button class="exit" title="退出全屏 (Esc)" @click="exit">✕ 退出全屏</button>
-    <div class="title">{{ task.title }}</div>
+    <div class="title">
+      <span class="t-icon">{{ task.type === 'date' ? '🗓' : '⏱' }}</span>
+      <span class="t-name" :style="{ color: taskColor(task.id) }">{{ task.title }}</span>
+    </div>
     <div class="time num">{{ task.status === 'finished' && task.type === 'duration' ? '00:00:00' : timeText }}</div>
     <div class="progress">
       <ProgressBar :percent="percent" />
@@ -74,9 +78,18 @@ function exit(): void {
   border-color: var(--danger);
 }
 .title {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-secondary);
+  font-size: 26px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.t-icon {
+  font-size: 26px;
+}
+.t-name {
+  font-size: 28px;
+  font-weight: 800;
 }
 .time {
   font-size: 110px;

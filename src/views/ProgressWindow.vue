@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { yearProgress, monthProgress, dayProgress, type PeriodProgress } from '@/utils/date'
 import ProgressBar from '@/components/ProgressBar.vue'
 
-const props = defineProps<{ mini: boolean }>()
+const props = defineProps<{ kind: 'all' | 'year' | 'month' | 'today' }>()
 
 const now = ref(new Date())
 let timer: ReturnType<typeof setInterval> | null = null
@@ -19,30 +19,62 @@ const year = computed<PeriodProgress>(() => yearProgress(now.value))
 const month = computed<PeriodProgress>(() => monthProgress(now.value))
 const day = computed<PeriodProgress>(() => dayProgress(now.value))
 
+const meta: Record<'year' | 'month' | 'today', { icon: string; label: string; variant: 'indigo' | 'violet' | 'emerald' }> = {
+  year: { icon: '📅', label: '年度进度', variant: 'indigo' },
+  month: { icon: '🌙', label: '月度进度', variant: 'violet' },
+  today: { icon: '☀️', label: '今日进度', variant: 'emerald' }
+}
+
+const pctOf = computed(() => ({
+  year: year.value.percent,
+  month: month.value.percent,
+  today: day.value.percent
+}))
+
 const rows = computed(() => [
-  { key: 'y', label: '年度', p: year.value.percent, variant: 'indigo' as const },
-  { key: 'm', label: '月度', p: month.value.percent, variant: 'violet' as const },
-  { key: 'd', label: '今日', p: day.value.percent, variant: 'emerald' as const }
+  { key: 'year', ...meta.year, p: year.value.percent },
+  { key: 'month', ...meta.month, p: month.value.percent },
+  { key: 'today', ...meta.today, p: day.value.percent }
 ])
+
+function remainText(p: PeriodProgress): string {
+  const s = Math.floor((p.totalMs - p.elapsedMs) / 1000)
+  const d = Math.floor(s / 86400)
+  const h = Math.floor((s % 86400) / 3600)
+  if (d > 0) return `剩余 ${d} 天`
+  const m = Math.floor((s % 3600) / 60)
+  return `剩余 ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
 
 const api = window.desktopAPI
 </script>
 
 <template>
-  <div class="pwin" :class="{ mini: props.mini }">
+  <div class="pwin" :class="{ single: props.kind !== 'all' }">
     <button class="close" title="关闭" @click="api.closeCurrentWindow()">✕</button>
-    <template v-if="!props.mini">
+
+    <template v-if="props.kind === 'all'">
       <div v-for="r in rows" :key="r.key" class="row">
-        <span class="label">{{ r.label }}</span>
-        <ProgressBar :percent="r.p" :variant="r.variant" thin />
-        <span class="pct num">{{ (r.p * 100).toFixed(1) }}%</span>
+        <span class="icon">{{ r.icon }}</span>
+        <div class="col">
+          <div class="rowline">
+            <span class="label">{{ r.label }}</span>
+            <span class="pct num">{{ (r.p * 100).toFixed(2) }}%</span>
+          </div>
+          <ProgressBar :percent="r.p" :variant="r.variant" thin />
+        </div>
       </div>
     </template>
+
     <template v-else>
-      <div class="row mini-row">
-        <span class="label">今日</span>
-        <ProgressBar :percent="day.percent" variant="emerald" thin />
-        <span class="pct num">{{ Math.round(day.percent * 100) }}%</span>
+      <div class="s-head">
+        <span class="s-icon">{{ meta[props.kind].icon }}</span>
+        <span class="s-label">{{ meta[props.kind].label }}</span>
+      </div>
+      <div class="s-pct num">{{ (pctOf[props.kind] * 100).toFixed(2) }}%</div>
+      <ProgressBar :percent="pctOf[props.kind]" :variant="meta[props.kind].variant" />
+      <div class="s-note">
+        {{ remainText(props.kind === 'year' ? year : props.kind === 'month' ? month : day) }}
       </div>
     </template>
   </div>
@@ -55,8 +87,8 @@ const api = window.desktopAPI
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 9px;
+  padding: 10px 14px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -66,25 +98,31 @@ const api = window.desktopAPI
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+}
+.icon {
+  font-size: 17px;
+}
+.col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rowline {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
 }
 .label {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-secondary);
-  width: 30px;
-  flex-shrink: 0;
 }
 .pct {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  width: 48px;
-  text-align: right;
-  flex-shrink: 0;
-}
-.mini-row .label {
-  width: 26px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--accent);
 }
 .close {
   -webkit-app-region: no-drag;
@@ -100,5 +138,32 @@ const api = window.desktopAPI
 .close:hover {
   background: var(--danger);
   color: #fff;
+}
+/* 单项悬浮：突出大号百分比 */
+.single .s-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.s-icon {
+  font-size: 24px;
+}
+.s-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.s-pct {
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1.05;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.s-note {
+  font-size: 11.5px;
+  color: var(--text-faint);
 }
 </style>

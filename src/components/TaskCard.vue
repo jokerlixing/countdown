@@ -2,20 +2,16 @@
 import { computed } from 'vue'
 import { useTasksStore } from '@/stores/tasks'
 import type { Task } from '@/types'
-import { formatMs, pad2 } from '@/utils/time'
-import { daysText, dateTaskProgress } from '@/utils/date'
+import { pad2 } from '@/utils/time'
+import { dateTaskProgress, dateParts } from '@/utils/date'
+import { taskColor } from '@/utils/color'
 import ProgressBar from './ProgressBar.vue'
 
 const props = defineProps<{ task: Task }>()
 const tasks = useTasksStore()
 
 const isDate = computed(() => props.task.type === 'date')
-
-const timeText = computed(() => {
-  if (isDate.value) return daysText(props.task.remainingMs)
-  if (props.task.status === 'finished') return '00:00:00'
-  return formatMs(props.task.remainingMs)
-})
+const parts = computed(() => dateParts(props.task.remainingMs))
 
 const percent = computed(() => {
   if (isDate.value && props.task.targetDate) {
@@ -60,7 +56,8 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
   <div class="task card" :class="{ running: task.status === 'running', done: task.status === 'finished' }">
     <div class="head">
       <div class="name-row">
-        <span class="name" :title="task.title">{{ task.title }}</span>
+        <span class="type-icon">{{ isDate ? '🗓' : '⏱' }}</span>
+        <span class="name" :style="{ color: taskColor(task.id) }" :title="task.title">{{ task.title }}</span>
         <span class="tag" :class="task.status">{{ statusLabel }}</span>
       </div>
       <div class="win-btns">
@@ -72,7 +69,10 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
     </div>
 
     <div class="time num" :class="{ danger }">
-      <template v-if="isDate">🗓 {{ timeText }}</template>
+      <template v-if="isDate">
+        <span class="date-days">{{ parts.days }}<small> 天</small></span>
+        <span class="date-hms num">{{ parts.hms }}</span>
+      </template>
       <template v-else>{{ hms.h }}<span class="colon">:</span>{{ hms.m }}<span class="colon">:</span>{{ hms.s }}</template>
     </div>
 
@@ -123,13 +123,18 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
   gap: 8px;
   min-width: 0;
 }
+.type-icon {
+  font-size: 15px;
+  flex-shrink: 0;
+}
 .name {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 16.5px;
+  font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 170px;
+  max-width: 158px;
+  letter-spacing: 0.3px;
 }
 .tag {
   font-size: 10.5px;
@@ -168,6 +173,24 @@ function openWin(mode: 'float' | 'mini' | 'screen'): void {
 }
 .danger {
   color: var(--danger);
+}
+/* 纪念日：突出天数 + 实时倒计时 */
+.date-days {
+  font-size: 34px;
+  font-weight: 800;
+}
+.date-days small {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.date-hms {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+  margin-top: 2px;
 }
 .progress-row {
   display: flex;

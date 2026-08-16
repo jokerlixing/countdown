@@ -39,7 +39,7 @@ const weekText = computed(() => `星期${'日一二三四五六'[now.value.getDa
 const cards = computed(() => [
   { key: 'year', icon: '📅', title: `${now.value.getFullYear()} 年度进度`, p: year.value, variant: 'indigo' as const, note: `已过 ${elapsedDays(year.value)} · 剩余 ${remainDays(year.value)}` },
   { key: 'month', icon: '🌙', title: `${now.value.getMonth() + 1} 月月度进度`, p: month.value, variant: 'violet' as const, note: `已过 ${Math.floor(month.value.elapsedMs / 86_400_000)} 天 · 剩余 ${remainDays(month.value)}` },
-  { key: 'day', icon: '☀️', title: '今日进度', p: day.value, variant: 'emerald' as const, note: `剩余 ${remainToday(day.value)}` }
+  { key: 'today', icon: '☀️', title: '今日进度', p: day.value, variant: 'emerald' as const, note: `剩余 ${remainToday(day.value)}` }
 ])
 </script>
 
@@ -48,8 +48,7 @@ const cards = computed(() => [
     <div class="date-line">
       <span>{{ formatCNDate(now) }} · {{ weekText }}</span>
       <span class="float-btns">
-        <button class="chip" title="悬浮显示三项进度" @click="api.openProgressWindow('float')">⌖ 悬浮</button>
-        <button class="chip" title="极简窗仅今日进度" @click="api.openProgressWindow('mini')">⊖ 极简</button>
+        <button class="chip" title="三项进度整合悬浮" @click="api.openProgressWindow('all')">⌖ 全部悬浮</button>
       </span>
     </div>
     <div v-for="c in cards" :key="c.key" class="pcard card">
@@ -57,6 +56,7 @@ const cards = computed(() => [
         <span class="icon">{{ c.icon }}</span>
         <span class="title">{{ c.title }}</span>
         <span class="pct num">{{ pct(c.p) }}</span>
+        <button class="chip mini-chip" title="单独悬浮此项" @click="api.openProgressWindow(c.key)">⌖ 悬浮</button>
       </div>
       <ProgressBar :percent="c.p.percent" :variant="c.variant" />
       <div class="note">{{ c.note }}</div>
@@ -93,6 +93,10 @@ const cards = computed(() => [
   display: flex;
   align-items: center;
   gap: 9px;
+}
+.mini-chip {
+  padding: 3px 10px;
+  font-size: 11.5px;
 }
 .icon {
   font-size: 17px;

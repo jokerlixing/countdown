@@ -50,6 +50,10 @@ useShortcuts({
   },
   onEsc: () => (showSettings.value = false)
 })
+
+function floatAllTasks(): void {
+  void window.desktopAPI.openTasksWindow()
+}
 </script>
 
 <template>
@@ -57,10 +61,17 @@ useShortcuts({
     <TitleBar title="桌面倒计时" />
     <div class="header">
       <div class="date-block">
-        <div class="hello">{{ tasks.runningCount > 0 ? `${tasks.runningCount} 个任务进行中` : '今天也要加油呀' }}</div>
-        <div class="done-count" v-if="finishedToday.length">已完成 {{ finishedToday.length }} 个 ⚡</div>
+        <div class="hello">今天也要开心呀，今天也要加油啊！</div>
+        <div class="done-count" v-if="tasks.runningCount > 0 || finishedToday.length">
+          {{ tasks.runningCount > 0 ? `⏱ ${tasks.runningCount} 个任务进行中` : '' }}
+          {{ tasks.runningCount > 0 && finishedToday.length ? ' · ' : '' }}
+          {{ finishedToday.length ? `已完成 ${finishedToday.length} 个 ⚡` : '' }}
+        </div>
       </div>
-      <button class="btn-icon gear" title="设置" @click="showSettings = true">⚙</button>
+      <div class="header-btns">
+        <button class="btn-icon" title="全部任务悬浮窗" @click="floatAllTasks">📋</button>
+        <button class="btn-icon gear" title="设置" @click="showSettings = true">⚙</button>
+      </div>
     </div>
 
     <div class="tabbar">
@@ -119,8 +130,12 @@ useShortcuts({
   padding: 2px 18px 12px;
 }
 .hello {
-  font-size: 16px;
+  font-size: 15.5px;
   font-weight: 800;
+}
+.header-btns {
+  display: flex;
+  gap: 4px;
 }
 .done-count {
   font-size: 12px;

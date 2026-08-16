@@ -37,6 +37,18 @@ export function daysText(ms: number): string {
   return `${days} 天`
 }
 
+/** 日期倒计时拆分：整天数 + 当日剩余 HH:MM:SS（用于纪念日显示具体倒计时时间） */
+export function dateParts(ms: number): { days: number; hms: string } {
+  const total = Math.max(0, ms)
+  const days = Math.floor(total / 86_400_000)
+  const rest = total - days * 86_400_000
+  const h = Math.floor(rest / 3_600_000)
+  const m = Math.floor((rest % 3_600_000) / 60_000)
+  const s = Math.floor((rest % 60_000) / 1000)
+  const pad = (n: number): string => String(n).padStart(2, '0')
+  return { days, hms: `${pad(h)}:${pad(m)}:${pad(s)}` }
+}
+
 /** 日期倒计时进度：从创建日到目标日的已过比例 */
 export function dateTaskProgress(createdAt: number, targetDate: string, now = Date.now()): number {
   const target = new Date(`${targetDate}T23:59:59`).getTime()

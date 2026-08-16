@@ -2,15 +2,27 @@ import { BrowserWindow, screen, app } from 'electron'
 import path from 'path'
 import { configStore } from './store'
 
-export type WindowMode = 'dashboard' | 'float' | 'mini' | 'screen' | 'progress-float' | 'progress-mini'
+export type WindowMode =
+  | 'dashboard'
+  | 'float'
+  | 'mini'
+  | 'screen'
+  | 'progress-all'
+  | 'progress-year'
+  | 'progress-month'
+  | 'progress-today'
+  | 'tasks-all'
 
 export const WINDOW_SIZES: Record<WindowMode, { width: number; height: number }> = {
   dashboard: { width: 420, height: 660 },
   float: { width: 230, height: 118 },
   mini: { width: 168, height: 74 },
   screen: { width: 800, height: 500 },
-  'progress-float': { width: 232, height: 172 },
-  'progress-mini': { width: 180, height: 64 }
+  'progress-all': { width: 232, height: 172 },
+  'progress-year': { width: 208, height: 132 },
+  'progress-month': { width: 208, height: 132 },
+  'progress-today': { width: 208, height: 132 },
+  'tasks-all': { width: 250, height: 280 }
 }
 
 const windows = new Map<string, BrowserWindow>()
@@ -183,16 +195,16 @@ export function closeWindowByKey(key: string): void {
   if (win && !win.isDestroyed()) win.close()
 }
 
-/** 进度悬浮窗（年度/月度/今日），float 显示三项，mini 仅今日 */
-export function openProgressWindow(mode: 'float' | 'mini'): void {
-  const key = `progress-${mode}`
+/** 进度悬浮窗：all = 年/月/日三项；year/month/today = 单项悬浮 */
+export function openProgressWindow(kind: 'all' | 'year' | 'month' | 'today'): void {
+  const key = `progress-${kind}`
   const existing = windows.get(key)
   if (existing && !existing.isDestroyed()) {
     existing.show()
     existing.focus()
     return
   }
-  const size = WINDOW_SIZES[`progress-${mode}`]
+  const size = WINDOW_SIZES[`progress-${kind}` as WindowMode]
   const win = new BrowserWindow({
     ...baseOptions(),
     width: size.width,
@@ -203,7 +215,31 @@ export function openProgressWindow(mode: 'float' | 'mini'): void {
   })
   windows.set(key, win)
   win.on('closed', () => windows.delete(key))
-  loadRenderer(win, `?view=progress&mode=${mode}`)
+  loadRenderer(win, `?view=progress&kind=${kind}`)
+}
+
+/** 所有提醒任务整合悬浮窗 */
+export function openTasksWindow(): void {
+  const key = 'tasks-all'
+  const existing = windows.get(key)
+  if (existing && !existing.isDestroyed()) {
+    existing.show()
+    existing.focus()
+    return
+  }
+  const size = WINDOW_SIZES['tasks-all']
+  const win = new BrowserWindow({
+    ...baseOptions(),
+    width: size.width,
+    height: size.height,
+    minWidth: 220,
+    minHeight: 160,
+    alwaysOnTop: true,
+    skipTaskbar: true
+  })
+  windows.set(key, win)
+  win.on('closed', () => windows.delete(key))
+  loadRenderer(win, '?view=tasks')
 }
 
 export function closeCurrent(win: BrowserWindow): void {

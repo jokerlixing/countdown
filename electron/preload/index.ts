@@ -37,8 +37,9 @@ const desktopAPI = {
   // 窗口
   openTaskWindow: (taskId: string, mode: 'float' | 'mini' | 'screen'): Promise<void> =>
     ipcRenderer.invoke('window:open-task', taskId, mode),
-  openProgressWindow: (mode: 'float' | 'mini'): Promise<void> =>
-    ipcRenderer.invoke('window:open-progress', mode),
+  openProgressWindow: (kind: 'all' | 'year' | 'month' | 'today'): Promise<void> =>
+    ipcRenderer.invoke('window:open-progress', kind),
+  openTasksWindow: (): Promise<void> => ipcRenderer.invoke('window:open-tasks'),
   closeCurrentWindow: (): Promise<void> => ipcRenderer.invoke('window:close-current'),
   minimize: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
   close: (): Promise<void> => ipcRenderer.invoke('window:close'),

@@ -2,15 +2,18 @@
 import { computed, ref } from 'vue'
 import type { Task } from '@/types'
 import { formatMsShort } from '@/utils/time'
-import { daysText, dateTaskProgress } from '@/utils/date'
+import { dateTaskProgress, dateParts } from '@/utils/date'
+import { taskColor } from '@/utils/color'
 import ProgressBar from './ProgressBar.vue'
 
 const props = defineProps<{ task: Task; mini: boolean }>()
 const hover = ref(false)
 let hideTimer: ReturnType<typeof setTimeout> | null = null
 
+const parts = computed(() => dateParts(props.task.remainingMs))
+
 const timeText = computed(() =>
-  props.task.type === 'date' ? daysText(props.task.remainingMs) : formatMsShort(props.task.remainingMs)
+  props.task.type === 'date' ? `${parts.value.days} 天` : formatMsShort(props.task.remainingMs)
 )
 
 const percent = computed(() => {
@@ -44,7 +47,12 @@ function leave(): void {
 <template>
   <div class="float" :class="{ mini }" @mouseenter="enter" @mouseleave="leave">
     <div class="top">
-      <span class="label">{{ task.status === 'finished' && task.type === 'duration' ? '完成!' : task.title }}</span>
+      <span class="label">
+        <span class="t-icon">{{ task.type === 'date' ? '🗓' : '⏱' }}</span>
+        <span class="t-name" :style="{ color: taskColor(task.id) }">{{
+          task.status === 'finished' && task.type === 'duration' ? '完成!' : task.title
+        }}</span>
+      </span>
       <Transition name="fade">
         <div v-if="hover" class="tools">
           <button v-if="task.type === 'duration'" class="t-btn" @click="toggle">
@@ -56,6 +64,7 @@ function leave(): void {
       </Transition>
     </div>
     <div class="time num" :class="{ danger }">{{ timeText }}</div>
+    <div v-if="task.type === 'date'" class="date-hms num">{{ parts.hms }}</div>
     <ProgressBar v-if="!mini" :percent="percent" thin />
   </div>
 </template>
@@ -79,23 +88,42 @@ function leave(): void {
   align-items: center;
   justify-content: space-between;
   min-height: 20px;
+  max-width: 100%;
 }
 .label {
-  font-size: 11.5px;
-  color: var(--text-secondary);
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 800;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.t-icon {
+  font-size: 13px;
+}
+.t-name {
+  font-size: 13.5px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .time {
-  font-size: 34px;
+  font-size: 36px;
   font-weight: 800;
   letter-spacing: 1px;
   line-height: 1;
 }
 .mini .time {
-  font-size: 24px;
+  font-size: 25px;
+}
+.date-hms {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+  margin-top: -3px;
 }
 .danger {
   color: var(--danger);
