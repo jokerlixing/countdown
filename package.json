@@ -1,7 +1,7 @@
 {
   "name": "desktop-countdown",
   "productName": "桌面倒计时",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "一款简单、美观、稳定的 Windows 桌面倒计时小工具",
   "main": "out/main/index.js",
   "author": "lixing",

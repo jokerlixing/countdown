@@ -5,6 +5,7 @@ import {
   openTaskWindow,
   openProgressWindow,
   openTasksWindow,
+  openPanelWindow,
   closeCurrent,
   applyWindowSettings,
   setFullscreen,
@@ -51,6 +52,7 @@ export function registerIpc(): void {
     openProgressWindow(kind)
   )
   ipcMain.handle('window:open-tasks', () => openTasksWindow())
+  ipcMain.handle('window:open-panel', () => openPanelWindow())
   ipcMain.handle('window:close-current', (e) => closeCurrent(e.sender as unknown as BrowserWindow))
   ipcMain.handle('window:minimize', () => getMainWindow()?.minimize())
   ipcMain.handle('window:close', () => getMainWindow()?.close())

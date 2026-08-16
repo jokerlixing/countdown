@@ -40,6 +40,7 @@ const desktopAPI = {
   openProgressWindow: (kind: 'all' | 'year' | 'month' | 'today'): Promise<void> =>
     ipcRenderer.invoke('window:open-progress', kind),
   openTasksWindow: (): Promise<void> => ipcRenderer.invoke('window:open-tasks'),
+  openPanelWindow: (): Promise<void> => ipcRenderer.invoke('window:open-panel'),
   closeCurrentWindow: (): Promise<void> => ipcRenderer.invoke('window:close-current'),
   minimize: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
   close: (): Promise<void> => ipcRenderer.invoke('window:close'),

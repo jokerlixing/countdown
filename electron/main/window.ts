@@ -12,6 +12,7 @@ export type WindowMode =
   | 'progress-month'
   | 'progress-today'
   | 'tasks-all'
+  | 'panel'
 
 export const WINDOW_SIZES: Record<WindowMode, { width: number; height: number }> = {
   dashboard: { width: 420, height: 660 },
@@ -22,7 +23,8 @@ export const WINDOW_SIZES: Record<WindowMode, { width: number; height: number }>
   'progress-year': { width: 208, height: 132 },
   'progress-month': { width: 208, height: 132 },
   'progress-today': { width: 208, height: 132 },
-  'tasks-all': { width: 250, height: 280 }
+  'tasks-all': { width: 250, height: 280 },
+  panel: { width: 252, height: 388 }
 }
 
 const windows = new Map<string, BrowserWindow>()
@@ -240,6 +242,31 @@ export function openTasksWindow(): void {
   windows.set(key, win)
   win.on('closed', () => windows.delete(key))
   loadRenderer(win, '?view=tasks')
+}
+
+/** 整合面板：全部任务 + 年/月/日进度合并到一个小的长方形悬浮窗 */
+export function openPanelWindow(): void {
+  const key = 'panel'
+  const existing = windows.get(key)
+  if (existing && !existing.isDestroyed()) {
+    existing.show()
+    existing.focus()
+    return
+  }
+  const size = WINDOW_SIZES.panel
+  const win = new BrowserWindow({
+    ...baseOptions(),
+    width: size.width,
+    height: size.height,
+    minWidth: 220,
+    minHeight: 220,
+    resizable: true,
+    alwaysOnTop: true,
+    skipTaskbar: true
+  })
+  windows.set(key, win)
+  win.on('closed', () => windows.delete(key))
+  loadRenderer(win, '?view=panel')
 }
 
 export function closeCurrent(win: BrowserWindow): void {

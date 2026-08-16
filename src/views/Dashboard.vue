@@ -54,6 +54,10 @@ useShortcuts({
 function floatAllTasks(): void {
   void window.desktopAPI.openTasksWindow()
 }
+
+function floatPanel(): void {
+  void window.desktopAPI.openPanelWindow()
+}
 </script>
 
 <template>
@@ -69,6 +73,7 @@ function floatAllTasks(): void {
         </div>
       </div>
       <div class="header-btns">
+        <button class="btn-icon" title="整合面板：任务+进度合并悬浮" @click="floatPanel">🧩</button>
         <button class="btn-icon" title="全部任务悬浮窗" @click="floatAllTasks">📋</button>
         <button class="btn-icon gear" title="设置" @click="showSettings = true">⚙</button>
       </div>
